@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Alert,
   FlatList,
@@ -18,193 +18,60 @@ import { Input } from '../../../components/ui/Input';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { VentasStackParamList } from '../../../navigation/types';
 import { borderRadius, colors, fontSize, spacing } from '../../../theme';
-import type { ClienteConSaldo, Fiado, Producto, TipoPago } from '../../../types';
-import { getClientesConSaldo } from '../../clientes/services/clientesService';
-import { getFiadosByCliente } from '../../fiados/services/fiadosService';
-import { createPago } from '../../pagos/services/pagosService';
+import type { TipoPago } from '../../../types';
 import { useProductos } from '../../productos/hooks/useProductos';
-import { createVenta } from '../services/ventasService';
+import { useVentaForm } from '../hooks/useVentaForm';
 
 type Props = NativeStackScreenProps<VentasStackParamList, 'VentaForm'>;
 
-interface LineaLocal {
-  producto: Producto;
-  cantidad: number;
-}
-
 export default function VentaFormScreen({ navigation }: Props) {
   const { productos, loading: loadingProductos } = useProductos();
-
-  // ── Productos ──────────────────────────────────────────────────────────────
-  const [lineas, setLineas]               = useState<LineaLocal[]>([]);
-  const [productoSel, setProductoSel]     = useState<Producto | null>(null);
-  const [cantidadInput, setCantidadInput] = useState('');
-  const [errCantidad, setErrCantidad]     = useState<string | undefined>(undefined);
-  const [showProductoModal, setShowProductoModal] = useState(false);
-
-  // ── Cliente ────────────────────────────────────────────────────────────────
-  const [clienteSel, setClienteSel]       = useState<ClienteConSaldo | null>(null);
-  const [clientes, setClientes]           = useState<ClienteConSaldo[]>([]);
-  const [fiadosCliente, setFiadosCliente] = useState<Fiado[]>([]);
-  const [loadingClientes, setLoadingClientes] = useState(false);
-  const [showClienteModal, setShowClienteModal] = useState(false);
-
-  // ── Pago ───────────────────────────────────────────────────────────────────
-  const [tipoPago, setTipoPago]   = useState<TipoPago>('contado');
-  const [pagarDeuda, setPagarDeuda] = useState(false);
-  const [montoDeuda, setMontoDeuda] = useState('');
-  const [errDeuda, setErrDeuda]   = useState<string | undefined>(undefined);
-
-  // ── General ────────────────────────────────────────────────────────────────
-  const [loading, setLoading]   = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  // ── Computed ───────────────────────────────────────────────────────────────
-  const stockDisponible = (p: Producto) =>
-    p.stock - (lineas.find((l) => l.producto.id === p.id)?.cantidad ?? 0);
-
-  const totalVenta = lineas.reduce(
-    (s, l) => s + Number(l.producto.precio) * l.cantidad,
-    0
-  );
-
-  const saldoDeudaTotal = fiadosCliente.reduce(
-    (s, f) => s + Number(f.saldo_pendiente),
-    0
-  );
-
-  const hayDeudaActiva = saldoDeudaTotal > 0;
-
-  // ── Handlers: productos ────────────────────────────────────────────────────
-  const handleAgregarLinea = () => {
-    if (!productoSel) return;
-    const cant = parseInt(cantidadInput, 10);
-    if (isNaN(cant) || cant <= 0) {
-      setErrCantidad('Ingresa una cantidad válida');
-      return;
-    }
-    const disponible = stockDisponible(productoSel);
-    if (cant > disponible) {
-      setErrCantidad(`Máximo disponible: ${disponible} uds`);
-      return;
-    }
-    setLineas((prev) => {
-      const idx = prev.findIndex((l) => l.producto.id === productoSel.id);
-      if (idx >= 0) {
-        const copia = [...prev];
-        copia[idx] = { ...copia[idx], cantidad: copia[idx].cantidad + cant };
-        return copia;
-      }
-      return [...prev, { producto: productoSel, cantidad: cant }];
-    });
-    setProductoSel(null);
-    setCantidadInput('');
-    setErrCantidad(undefined);
-  };
-
-  const handleQuitarLinea = (productoId: number) => {
-    setLineas((prev) => prev.filter((l) => l.producto.id !== productoId));
-    if (productoSel?.id === productoId) {
-      setProductoSel(null);
-      setCantidadInput('');
-    }
-  };
-
-  // ── Handlers: cliente ──────────────────────────────────────────────────────
-  const handleAbrirModalCliente = async () => {
-    if (clientes.length === 0) {
-      setLoadingClientes(true);
-      try {
-        setClientes(await getClientesConSaldo());
-      } catch { /* silent */ } finally {
-        setLoadingClientes(false);
-      }
-    }
-    setShowClienteModal(true);
-  };
-
-  const handleSeleccionarCliente = async (cliente: ClienteConSaldo) => {
-    setClienteSel(cliente);
-    setShowClienteModal(false);
-    setTipoPago('contado');
-    setPagarDeuda(false);
-    setMontoDeuda('');
-    setErrDeuda(undefined);
-
-    try {
-      const todos = await getFiadosByCliente(cliente.id);
-      setFiadosCliente(todos.filter((f) => Number(f.saldo_pendiente) > 0));
-    } catch { /* silent */ }
-  };
-
-  const handleQuitarCliente = () => {
-    setClienteSel(null);
-    setFiadosCliente([]);
-    setTipoPago('contado');
-    setPagarDeuda(false);
-    setMontoDeuda('');
-    setErrDeuda(undefined);
-  };
-
-  // ── Handlers: pago ────────────────────────────────────────────────────────
-  const handleCambiarTipoPago = (tipo: TipoPago) => {
-    setTipoPago(tipo);
-    setPagarDeuda(false);
-    setMontoDeuda('');
-    setErrDeuda(undefined);
-  };
-
-  // Paga fiados en orden de antigüedad hasta agotar el monto
-  const pagarFiadosEnOrden = async (monto: number) => {
-    let restante = monto;
-    const ordenados = [...fiadosCliente].sort((a, b) => a.id - b.id);
-    for (const f of ordenados) {
-      if (restante <= 0) break;
-      const aPagar = Math.min(restante, Number(f.saldo_pendiente));
-      await createPago({ fiado_id: f.id, monto_pagado: aPagar });
-      restante -= aPagar;
-    }
-  };
+  const {
+    lineas,
+    productoSel,
+    cantidadInput,
+    errCantidad,
+    showProductoModal,
+    clienteSel,
+    clientes,
+    fiadosCliente,
+    loadingClientes,
+    showClienteModal,
+    tipoPago,
+    pagarDeuda,
+    montoDeuda,
+    errDeuda,
+    loading,
+    errorMsg,
+    stockDisponible,
+    totalVenta,
+    saldoDeudaTotal,
+    hayDeudaActiva,
+    setProductoSel,
+    setCantidadInput,
+    setErrCantidad,
+    setShowProductoModal,
+    setShowClienteModal,
+    setPagarDeuda,
+    setMontoDeuda,
+    setErrDeuda,
+    handleAgregarLinea,
+    handleQuitarLinea,
+    handleAbrirModalCliente,
+    handleSeleccionarCliente,
+    handleQuitarCliente,
+    handleCambiarTipoPago,
+    handleRegistrar,
+  } = useVentaForm();
 
   // ── Registrar venta ────────────────────────────────────────────────────────
-  const handleRegistrar = async () => {
+  const onRegistrar = async () => {
     if (lineas.length === 0) {
       Alert.alert('Sin productos', 'Agrega al menos un producto a la venta.');
       return;
     }
-
-    // Validar monto de deuda si aplica
-    if (pagarDeuda && clienteSel) {
-      const monto = parseFloat(montoDeuda);
-      if (isNaN(monto) || monto <= 0) {
-        setErrDeuda('Ingresa un monto válido');
-        return;
-      }
-      if (monto > saldoDeudaTotal) {
-        setErrDeuda(`El monto supera la deuda total (L ${saldoDeudaTotal.toFixed(2)})`);
-        return;
-      }
-    }
-
-    setErrorMsg(null);
-    setLoading(true);
-    try {
-      await createVenta(
-        lineas.map((l) => ({ producto_id: l.producto.id, cantidad: l.cantidad })),
-        clienteSel?.id,
-        tipoPago
-      );
-
-      if (pagarDeuda && montoDeuda) {
-        await pagarFiadosEnOrden(parseFloat(montoDeuda));
-      }
-
-      navigation.goBack();
-    } catch (e: any) {
-      setErrorMsg(e?.message ?? 'No se pudo registrar la venta');
-    } finally {
-      setLoading(false);
-    }
+    const ok = await handleRegistrar();
+    if (ok) navigation.goBack();
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -409,7 +276,7 @@ export default function VentaFormScreen({ navigation }: Props) {
 
             <Button
               title="Registrar venta"
-              onPress={handleRegistrar}
+              onPress={onRegistrar}
               loading={loading}
             />
           </View>

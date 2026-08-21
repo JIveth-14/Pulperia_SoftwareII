@@ -17,6 +17,17 @@ interface Props {
   style?: ViewStyle;
 }
 
+// Mapa de variantes: agregar una variante nueva solo requiere añadir una
+// entrada aquí, sin modificar la lógica del componente (OCP).
+const VARIANTES: Record<
+  NonNullable<Props['variant']>,
+  { bg: string; text: string }
+> = {
+  primary: { bg: colors.primary, text: '#fff' },
+  danger: { bg: colors.danger, text: '#fff' },
+  secondary: { bg: colors.border, text: colors.text },
+};
+
 export function Button({
   title,
   onPress,
@@ -25,14 +36,7 @@ export function Button({
   variant = 'primary',
   style,
 }: Props) {
-  const bg =
-    variant === 'danger'
-      ? colors.danger
-      : variant === 'secondary'
-      ? colors.border
-      : colors.primary;
-
-  const textColor = variant === 'secondary' ? colors.text : '#fff';
+  const { bg, text: textColor } = VARIANTES[variant];
 
   const handlePress = () => {
     try {

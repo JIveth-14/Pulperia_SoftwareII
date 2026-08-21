@@ -1,48 +1,41 @@
-import { supabase } from '../../../services/supabase/client';
-import type { Producto, NuevoProducto } from '../../../types';
+import type { NuevoProducto, Producto } from '../../../types';
+import type { ProductoRepository } from '../../../repositories';
+import { repositories } from '../../../repositories/container';
 
-export async function getProductos(): Promise<Producto[]> {
-  const { data, error } = await supabase
-    .from('productos')
-    .select('*')
-    .order('nombre');
-  if (error) throw new Error(error.message);
-  return data as Producto[];
+/**
+ * Servicio de productos. Depende de la interfaz ProductoRepository (DIP).
+ */
+export class ProductoService {
+  constructor(private repo: ProductoRepository = repositories.productos) {}
+
+  getProductos(): Promise<Producto[]> {
+    return this.repo.getAll();
+  }
+
+  getProductoById(id: number): Promise<Producto> {
+    return this.repo.getById(id);
+  }
+
+  createProducto(nuevo: NuevoProducto): Promise<Producto> {
+    return this.repo.create(nuevo);
+  }
+
+  updateProducto(id: number, cambios: Partial<NuevoProducto>): Promise<Producto> {
+    return this.repo.update(id, cambios);
+  }
+
+  deleteProducto(id: number): Promise<void> {
+    return this.repo.delete(id);
+  }
 }
 
-export async function getProductoById(id: number): Promise<Producto> {
-  const { data, error } = await supabase
-    .from('productos')
-    .select('*')
-    .eq('id', id)
-    .single();
-  if (error) throw new Error(error.message);
-  return data as Producto;
-}
+// Instancia por defecto compartida.
+export const productoService = new ProductoService();
 
-export async function createProducto(nuevo: NuevoProducto): Promise<Producto> {
-  const row = { ...nuevo, stock_minimo: nuevo.stock_minimo ?? 5 };
-  const { data, error } = await supabase
-    .from('productos')
-    .insert(row)
-    .select()
-    .single();
-  if (error) throw new Error(error.message);
-  return data as Producto;
-}
-
-export async function updateProducto(id: number, cambios: Partial<NuevoProducto>): Promise<Producto> {
-  const { data, error } = await supabase
-    .from('productos')
-    .update(cambios)
-    .eq('id', id)
-    .select()
-    .single();
-  if (error) throw new Error(error.message);
-  return data as Producto;
-}
-
-export async function deleteProducto(id: number): Promise<void> {
-  const { error } = await supabase.from('productos').delete().eq('id', id);
-  if (error) throw new Error(error.message);
-}
+// Re-export de funciones para compatibilidad con los consumidores actuales.
+export const getProductos = () => productoService.getProductos();
+export const getProductoById = (id: number) => productoService.getProductoById(id);
+export const createProducto = (nuevo: NuevoProducto) => productoService.createProducto(nuevo);
+export const updateProducto = (id: number, cambios: Partial<NuevoProducto>) =>
+  productoService.updateProducto(id, cambios);
+export const deleteProducto = (id: number) => productoService.deleteProducto(id);

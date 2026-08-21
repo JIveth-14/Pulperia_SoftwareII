@@ -1,32 +1,43 @@
-import { supabase } from '../../../services/supabase/client';
 import type { Fiado, NuevoFiado } from '../../../types';
+import type { FiadoRepository } from '../../../repositories';
+import { repositories } from '../../../repositories/container';
 
-export async function getFiadosByCliente(clienteId: number): Promise<Fiado[]> {
-  const { data, error } = await supabase
-    .from('fiados')
-    .select('*')
-    .eq('cliente_id', clienteId)
-    .order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
-  return data as Fiado[];
+/**
+ * Servicio de fiados. Depende de la interfaz FiadoRepository (DIP).
+ */
+export class FiadoService {
+  constructor(private repo: FiadoRepository = repositories.fiados) {}
+
+  getFiadosByCliente(clienteId: number): Promise<Fiado[]> {
+    return this.repo.getByCliente(clienteId);
+  }
+
+  getFiadoById(id: number): Promise<Fiado> {
+    return this.repo.getById(id);
+  }
+
+  createFiado(nuevo: NuevoFiado): Promise<Fiado> {
+    return this.repo.create(nuevo);
+  }
+
+  /**
+   * Crea un fiado a partir de una venta fiada. Centraliza la regla de negocio
+   * de "una venta fiada genera un fiado" en el dominio de fiados.
+   */
+  createFiadoFromVenta(clienteId: number, montoTotal: number): Promise<Fiado> {
+    if (montoTotal <= 0) {
+      throw new Error('No se puede crear un fiado con monto L 0.00');
+    }
+    return this.repo.create({ cliente_id: clienteId, monto_total: montoTotal });
+  }
 }
 
-export async function getFiadoById(id: number): Promise<Fiado> {
-  const { data, error } = await supabase
-    .from('fiados')
-    .select('*')
-    .eq('id', id)
-    .single();
-  if (error) throw new Error(error.message);
-  return data as Fiado;
-}
+// Instancia por defecto compartida.
+export const fiadoService = new FiadoService();
 
-export async function createFiado(nuevo: NuevoFiado): Promise<Fiado> {
-  const { data, error } = await supabase
-    .from('fiados')
-    .insert({ ...nuevo, saldo_pendiente: nuevo.monto_total, estado: 'pendiente' })
-    .select()
-    .single();
-  if (error) throw new Error(error.message);
-  return data as Fiado;
-}
+// Re-export de funciones para compatibilidad con los consumidores actuales.
+export const getFiadosByCliente = (clienteId: number) => fiadoService.getFiadosByCliente(clienteId);
+export const getFiadoById = (id: number) => fiadoService.getFiadoById(id);
+export const createFiado = (nuevo: NuevoFiado) => fiadoService.createFiado(nuevo);
+export const createFiadoFromVenta = (clienteId: number, montoTotal: number) =>
+  fiadoService.createFiadoFromVenta(clienteId, montoTotal);

@@ -22,15 +22,20 @@ export default function VentasScreen({ navigation }: Props) {
     }, [refetch])
   );
 
-  const hoy = new Date().toISOString().split('T')[0];
-
   const { totalHoy, cantidadHoy } = useMemo(() => {
-    const deHoy = ventas.filter((v) => v.fecha === hoy);
+    const hoy = new Date();
+    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime();
+    const fin    = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1).getTime();
+    const deHoy  = ventas.filter((v) => {
+      if (!v.fecha) return false;
+      const t = new Date(v.fecha).getTime();
+      return t >= inicio && t < fin;
+    });
     return {
       cantidadHoy: deHoy.length,
       totalHoy: deHoy.reduce((s, v) => s + Number(v.total), 0),
     };
-  }, [ventas, hoy]);
+  }, [ventas]);
 
   if (loading && ventas.length === 0) return <LoadingSpinner />;
 
