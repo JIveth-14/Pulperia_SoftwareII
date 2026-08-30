@@ -1,4 +1,4 @@
-name: Preview Build
+name: Build Next.js
 
 on:
   push:
@@ -11,11 +11,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
-      - uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-      - run: eas build --profile preview --platform android --non-interactive
+      - run: npm run build
+      - name: Build successful ✓
+        run: echo "Next.js build completed successfully"
