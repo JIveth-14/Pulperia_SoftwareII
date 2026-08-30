@@ -1,29 +1,36 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { colors, fontSize, spacing } from '../../theme';
-
-interface Props {
+interface EmptyStateProps {
+  icon?: string;
+  title?: string;
   message: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
-export function EmptyState({ message }: Props) {
+export function EmptyState({
+  icon = '📭',
+  title,
+  message,
+  action,
+}: EmptyStateProps) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>{message}</Text>
-    </View>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="text-4xl mb-4">{icon}</div>
+      {title && (
+        <h3 className="text-lg font-semibold text-text mb-2">
+          {title}
+        </h3>
+      )}
+      <p className="text-text-secondary mb-6">{message}</p>
+      {action && (
+        <button
+          onClick={action.onClick}
+          className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary-light transition-colors"
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  text: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-});

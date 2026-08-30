@@ -1,13 +1,11 @@
-import { supabase } from '../../services/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { NuevoPago, Pago } from '../../types';
 import type { PagoRepository } from '../PagoRepository';
 
-/**
- * Implementación de PagoRepository sobre Supabase.
- */
 export class SupabasePagoRepository implements PagoRepository {
+  constructor(private supabase: SupabaseClient) {}
   async create(nuevo: NuevoPago): Promise<Pago> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('pagos')
       .insert(nuevo)
       .select()
@@ -17,7 +15,7 @@ export class SupabasePagoRepository implements PagoRepository {
   }
 
   async getByFiado(fiadoId: number): Promise<Pago[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('pagos')
       .select('*')
       .eq('fiado_id', fiadoId)
@@ -27,7 +25,7 @@ export class SupabasePagoRepository implements PagoRepository {
   }
 
   async getByCliente(clienteId: number): Promise<Pago[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('pagos')
       .select('*, fiados!inner(cliente_id)')
       .eq('fiados.cliente_id', clienteId)

@@ -1,18 +1,20 @@
-import { supabase } from '../../services/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { LineaVentaInput, TipoPago, Venta, VentaConDetalle } from '../../types';
 import type { VentaRepository } from '../VentaRepository';
 import { SupabaseProductoRepository } from './SupabaseProductoRepository';
 import { SupabaseFiadoRepository } from './SupabaseFiadoRepository';
 
-/**
- * Implementación de VentaRepository sobre Supabase.
- */
 export class SupabaseVentaRepository implements VentaRepository {
-  private productos = new SupabaseProductoRepository();
-  private fiados = new SupabaseFiadoRepository();
+  private productos: SupabaseProductoRepository;
+  private fiados: SupabaseFiadoRepository;
+
+  constructor(private supabase: SupabaseClient) {
+    this.productos = new SupabaseProductoRepository(supabase);
+    this.fiados = new SupabaseFiadoRepository(supabase);
+  }
 
   async getAll(): Promise<Venta[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('ventas')
       .select('*')
       .order('fecha', { ascending: false });
@@ -24,7 +26,7 @@ export class SupabaseVentaRepository implements VentaRepository {
     const ahora = new Date();
     const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()).toISOString();
     const manana = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).toISOString();
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('ventas')
       .select('*')
       .gte('fecha', inicio)
@@ -34,7 +36,7 @@ export class SupabaseVentaRepository implements VentaRepository {
   }
 
   async getConDetalle(id: number): Promise<VentaConDetalle> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('ventas')
       .select('*, detalle_venta(*, productos(*)), clientes(id, nombre, telefono)')
       .eq('id', id)
@@ -67,7 +69,7 @@ export class SupabaseVentaRepository implements VentaRepository {
     }
 
     // 2. Crear cabecera
-    const { data: ventaData, error: ventaError } = await supabase
+    const { data: ventaData, error: ventaError } = await this.supabase
       .from('ventas')
       .insert({ total: 0, cliente_id: clienteId ?? null, tipo_pago: tipoPago })
       .select()
@@ -84,7 +86,7 @@ export class SupabaseVentaRepository implements VentaRepository {
       const p = await this.productos.getById(linea.producto_id);
       const subtotal = Number(p.precio) * linea.cantidad;
       totalCalculado += subtotal;
-      const { error } = await supabase.from('detalle_venta').insert({
+      const { error } = await this.supabase.from('detalle_venta').insert({
         venta_id: venta.id,
         producto_id: linea.producto_id,
         cantidad: linea.cantidad,
@@ -95,7 +97,7 @@ export class SupabaseVentaRepository implements VentaRepository {
     }
 
     // 4. Leer venta actualizada (el trigger debería haber calculado el total).
-    const { data: updated, error: upError } = await supabase
+    const { data: updated, error: upError } = await this.supabase
       .from('ventas')
       .select('*')
       .eq('id', venta.id)
@@ -107,7 +109,7 @@ export class SupabaseVentaRepository implements VentaRepository {
     // trg_recalcular_total_venta probablemente no está instalado: lo
     // corregimos aquí para no dejar la venta con total L 0.00.
     if (Number(ventaFinal.total) !== totalCalculado) {
-      const { data: fixed, error: fixError } = await supabase
+      const { data: fixed, error: fixError } = await this.supabase
         .from('ventas')
         .update({ total: totalCalculado })
         .eq('id', venta.id)

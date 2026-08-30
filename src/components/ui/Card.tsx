@@ -1,25 +1,41 @@
 import React from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
-import { borderRadius, colors, spacing } from '../../theme';
 
-export function Card({ children, style, ...rest }: ViewProps) {
-  return (
-    <View style={[styles.card, style]} {...rest}>
-      {children}
-    </View>
-  );
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  title?: string;
+  subtitle?: string;
+  children: React.ReactNode;
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-});
+export function Card({
+  title,
+  subtitle,
+  children,
+  className = '',
+  ...props
+}: CardProps) {
+  return (
+    <div
+      className={`
+        bg-white rounded-md border border-gray-200 shadow-sm
+        ${className}
+      `}
+      {...props}
+    >
+      {(title || subtitle) && (
+        <div className="px-6 py-4 border-b border-gray-200">
+          {title && (
+            <h3 className="text-lg font-semibold text-text">
+              {title}
+            </h3>
+          )}
+          {subtitle && (
+            <p className="mt-1 text-sm text-text-secondary">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      )}
+      <div className="px-6 py-4">{children}</div>
+    </div>
+  );
+}

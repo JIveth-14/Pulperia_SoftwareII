@@ -1,13 +1,11 @@
-import { supabase } from '../../services/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Fiado, NuevoFiado } from '../../types';
 import type { FiadoRepository } from '../FiadoRepository';
 
-/**
- * Implementación de FiadoRepository sobre Supabase.
- */
 export class SupabaseFiadoRepository implements FiadoRepository {
+  constructor(private supabase: SupabaseClient) {}
   async getByCliente(clienteId: number): Promise<Fiado[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('fiados')
       .select('*')
       .eq('cliente_id', clienteId)
@@ -17,7 +15,7 @@ export class SupabaseFiadoRepository implements FiadoRepository {
   }
 
   async getById(id: number): Promise<Fiado> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('fiados')
       .select('*')
       .eq('id', id)
@@ -27,7 +25,7 @@ export class SupabaseFiadoRepository implements FiadoRepository {
   }
 
   async create(nuevo: NuevoFiado): Promise<Fiado> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('fiados')
       .insert({ ...nuevo, saldo_pendiente: nuevo.monto_total, estado: 'pendiente' })
       .select()

@@ -1,79 +1,57 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  ViewStyle,
-} from 'react-native';
-import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
-interface Props {
-  title: string;
-  onPress: () => void;
+interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
-  disabled?: boolean;
-  variant?: 'primary' | 'danger' | 'secondary';
-  style?: ViewStyle;
+  fullWidth?: boolean;
+  children: React.ReactNode;
 }
 
-// Mapa de variantes: agregar una variante nueva solo requiere añadir una
-// entrada aquí, sin modificar la lógica del componente (OCP).
-const VARIANTES: Record<
-  NonNullable<Props['variant']>,
-  { bg: string; text: string }
-> = {
-  primary: { bg: colors.primary, text: '#fff' },
-  danger: { bg: colors.danger, text: '#fff' },
-  secondary: { bg: colors.border, text: colors.text },
+const variantStyles = {
+  primary: 'bg-primary text-white hover:bg-primary-light disabled:opacity-50',
+  secondary:
+    'bg-gray-200 text-text hover:bg-gray-300 disabled:opacity-50',
+  danger: 'bg-danger text-white hover:bg-red-600 disabled:opacity-50',
+};
+
+const sizeStyles = {
+  sm: 'px-2 py-1 text-sm',
+  md: 'px-4 py-2 text-md',
+  lg: 'px-6 py-3 text-lg',
 };
 
 export function Button({
-  title,
-  onPress,
-  loading = false,
-  disabled = false,
   variant = 'primary',
-  style,
-}: Props) {
-  const { bg, text: textColor } = VARIANTES[variant];
-
-  const handlePress = () => {
-    try {
-      onPress();
-    } catch (e: any) {
-      console.error('Button onPress error:', e?.message ?? e);
-    }
-  };
-
+  size = 'md',
+  loading = false,
+  fullWidth = false,
+  disabled = false,
+  className = '',
+  children,
+  ...props
+}: ButtonProps) {
   return (
-    <TouchableOpacity
-      style={[
-        styles.btn,
-        { backgroundColor: bg },
-        (disabled || loading) && styles.disabled,
-        style,
-      ]}
-      onPress={handlePress}
+    <button
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      className={`
+        rounded-md font-medium transition-colors
+        ${variantStyles[variant]}
+        ${sizeStyles[size]}
+        ${fullWidth ? 'w-full' : ''}
+        ${className}
+      `}
+      {...props}
     >
       {loading ? (
-        <ActivityIndicator color={textColor} />
+        <span className="inline-flex items-center gap-2">
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent"></span>
+          Cargando...
+        </span>
       ) : (
-        <Text style={[styles.label, { color: textColor }]}>{title}</Text>
+        children
       )}
-    </TouchableOpacity>
+    </button>
   );
 }
-
-const styles = StyleSheet.create({
-  btn: {
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  disabled: { opacity: 0.5 },
-  label: { fontSize: fontSize.md, fontWeight: '600' },
-});

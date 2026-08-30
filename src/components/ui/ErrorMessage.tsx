@@ -1,25 +1,23 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { borderRadius, colors, fontSize, spacing } from '../../theme';
-
-interface Props {
+interface ErrorMessageProps {
   message: string;
+  onDismiss?: () => void;
 }
 
-export function ErrorMessage({ message }: Props) {
+export function ErrorMessage({ message, onDismiss }: ErrorMessageProps) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>{message}</Text>
-    </View>
+    <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 flex items-start justify-between">
+      <div className="flex items-start gap-3">
+        <span className="text-lg">⚠️</span>
+        <p>{message}</p>
+      </div>
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          className="text-red-600 hover:text-red-800 font-medium"
+        >
+          ✕
+        </button>
+      )}
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#FEE2E2',
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    margin: spacing.md,
-  },
-  text: { color: colors.danger, fontSize: fontSize.sm },
-});

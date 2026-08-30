@@ -1,48 +1,46 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  View,
-} from 'react-native';
-import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
-interface Props extends TextInputProps {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
-  error?: string | null;
+  error?: string;
+  fullWidth?: boolean;
 }
 
-export function Input({ label, error, style, ...rest }: Props) {
+export function Input({
+  label,
+  error,
+  fullWidth = true,
+  className = '',
+  id,
+  ...props
+}: InputProps) {
+  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+
   return (
-    <View style={styles.wrapper}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
-      <TextInput
-        style={[styles.input, error ? styles.inputError : null, style as any]}
-        placeholderTextColor={colors.textSecondary}
-        {...rest}
+    <div className={fullWidth ? 'w-full' : ''}>
+      {label && (
+        <label
+          htmlFor={inputId}
+          className="block text-sm font-medium text-text mb-2"
+        >
+          {label}
+        </label>
+      )}
+      <input
+        id={inputId}
+        className={`
+          w-full px-3 py-2 border border-gray-300 rounded-md
+          text-text placeholder-text-secondary
+          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+          disabled:bg-gray-50 disabled:text-text-secondary disabled:cursor-not-allowed
+          ${error ? 'border-danger focus:ring-danger' : ''}
+          ${className}
+        `}
+        {...props}
       />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-    </View>
+      {error && (
+        <p className="mt-1 text-sm text-danger">{error}</p>
+      )}
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: { marginBottom: spacing.md },
-  label: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    fontSize: fontSize.md,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  inputError: { borderColor: colors.danger },
-  errorText: { fontSize: fontSize.xs, color: colors.danger, marginTop: spacing.xs },
-});
