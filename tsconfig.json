@@ -13,12 +13,11 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": ["jest", "node"],
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "src/app", "src/lib", "src/types", "src/repositories", "src/modules/*/services", "src/modules/*/types", "src/utils", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "legacy"]
+  "include": ["next-env.d.ts", "src/app", "src/lib", "src/types", "src/repositories", "src/modules/*/services", "src/modules/*/types", "src/utils/*.ts", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "legacy", "**/__tests__/**", "**/*.test.ts", "**/*.spec.ts"]
 }
