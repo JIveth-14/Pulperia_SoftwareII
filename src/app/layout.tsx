@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ToastProvider } from '@/components/Toast/ToastContext';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -11,7 +12,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }
