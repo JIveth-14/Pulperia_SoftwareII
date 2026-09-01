@@ -35,5 +35,9 @@
   "allowScripts": {
     "@parcel/watcher@2.6.0": true,
     "unrs-resolver@1.12.2": true
+  },
+  "engines": {
+    "node": "24.x",
+    "npm": "11.x"
   }
 }
