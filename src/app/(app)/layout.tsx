@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getUser } from '@/lib/supabase/server-utils';
 import Link from 'next/link';
 

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { createClientServer } from '@/lib/supabase';
 import { createRepositories } from '@/repositories/container';
