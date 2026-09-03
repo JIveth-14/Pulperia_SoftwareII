@@ -1,0 +1,42 @@
+{
+  "name": "Pulpería - Gestión de Negocio",
+  "short_name": "Pulpería",
+  "description": "Sistema integral para gestionar inventario, ventas, clientes y créditos",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#4F46E5",
+  "background_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshot.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "permissions": [],
+  "shortcuts": [
+    {
+      "name": "Iniciar sesión",
+      "short_name": "Login",
+      "description": "Acceder a tu cuenta",
+      "url": "/login"
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Ver resumen del negocio",
+      "url": "/dashboard"
+    }
+  ]
+}
