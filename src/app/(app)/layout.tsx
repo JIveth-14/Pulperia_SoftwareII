@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getUser } from '@/lib/supabase/server-utils';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export default async function AppLayout({
@@ -11,7 +12,7 @@ export default async function AppLayout({
   const user = await getUser();
 
   if (!user) {
-    return null; // Middleware redirige a /login
+    redirect('/login');
   }
 
   return (
