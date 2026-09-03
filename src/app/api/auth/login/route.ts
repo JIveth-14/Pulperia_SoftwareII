@@ -27,10 +27,16 @@ export async function POST(request: NextRequest) {
     }
   )
 
+  console.log('URL de Supabase:', url)
+  console.log('Email a autenticar:', email)
+  console.log('Password length:', password?.length)
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
+
+  console.log('[api/auth/login] respuesta de Supabase:', { data, error: error?.message })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 })
