@@ -1,14 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseEnv } from '@/lib/supabase/env'
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json()
 
+  console.log('[api/auth/login] recibido:', { email, password })
+
   const cookieStore = await cookies()
+  const { url, anonKey } = getSupabaseEnv()
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {
