@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { ToastProvider } from '@/components/Toast/ToastContext';
 import './globals.css';
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Pulpería',
   description: 'Gestión de clientes, fiados, inventario y ventas',
