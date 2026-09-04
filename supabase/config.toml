@@ -1,0 +1,30 @@
+# Supabase Configuration
+# This file is used by Supabase CLI for local development and migrations
+
+[api]
+# Port for local Supabase API
+port = 54321
+schemas = ["public"]
+max_rows = 1000
+
+[db]
+# PostgreSQL configuration
+port = 54322
+major_version = 15
+
+[studio]
+# Studio UI configuration
+port = 54323
+
+[auth]
+# Auth configuration
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+jwt_secret = "super-secret-jwt-token-with-at-least-32-characters-long"
+enable_signup = true
+enable_anonymous_signups = false
+mfa_max_enrolled_factors = 5
+
+[storage]
+# Storage configuration
+file_size_limit = 52428800
