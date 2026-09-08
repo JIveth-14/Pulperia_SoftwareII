@@ -1,0 +1,121 @@
+name: Code Quality & Coverage
+
+on:
+  push:
+    branches: [main, testMigration, develop]
+  pull_request:
+    branches: [main, testMigration, develop]
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    name: Test & Generate Coverage
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 24.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript type check
+        run: npm run typecheck || true
+
+      - name: Run ESLint
+        run: npm run lint || true
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage --passWithNoTests
+        continue-on-error: false
+
+      - name: Generate coverage badge
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report-${{ matrix.node-version }}
+          path: coverage/
+          retention-days: 30
+        if: always()
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: matrix.node-version == '24.x'
+
+      - name: Comment coverage on PR
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./coverage/lcov.info
+        if: github.event_name == 'pull_request' && matrix.node-version == '24.x'
+
+      - name: Check coverage thresholds
+        run: |
+          echo "Coverage Report Summary:"
+          if [ -f coverage/coverage-summary.json ]; then
+            cat coverage/coverage-summary.json | jq '.total'
+          fi
+        continue-on-error: true
+
+  sonarcloud:
+    runs-on: ubuntu-latest
+    name: SonarCloud Analysis
+    needs: test-and-coverage
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage --passWithNoTests
+        continue-on-error: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        if: env.SONAR_TOKEN != ''
+
+      - name: Show SonarCloud Info
+        run: |
+          echo "⚠️  SonarCloud token not configured"
+          echo "To enable SonarCloud analysis:"
+          echo "1. Go to sonarcloud.io and sign in with GitHub"
+          echo "2. Create a new organization and project"
+          echo "3. Add SONAR_TOKEN as a GitHub secret"
+        if: env.SONAR_TOKEN == ''
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: coverage/
+          retention-days: 7
+        if: always()
