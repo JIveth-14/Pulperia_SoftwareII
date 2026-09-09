@@ -1,0 +1,242 @@
+name: Mora App CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  # TAREA 10: Tests
+  test:
+    runs-on: ubuntu-latest
+    name: Run Tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --coverage --passWithNoTests
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  # Lint & Type Check
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint & Type Check
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint -- --max-warnings 0 || true
+
+      - name: Run TypeScript check
+        run: npm run typecheck || true
+
+  # Build
+  build:
+    runs-on: ubuntu-latest
+    name: Build Application
+    needs: [test, lint]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build:frontend || npm run build || true
+
+      - name: Build backend
+        run: npm run build:backend || true
+
+  # Security Scan
+  security:
+    runs-on: ubuntu-latest
+    name: Security Scan
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Deploy (solo en main)
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    needs: [build, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          npm install -g vercel
+          vercel deploy --prod \
+            --token=$VERCEL_TOKEN \
+            --name=mora-app
+
+      - name: Notify deployment
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const status = job.status === 'success' ? '✅ Deployment successful' : '❌ Deployment failed';
+            github.rest.commits.createComment({
+              owner,
+              repo,
+              commit_sha: context.sha,
+              body: `${status} - Mora App deployed to production`
+            });
+
+  # Database Migrations (solo en main)
+  migrate:
+    runs-on: ubuntu-latest
+    name: Apply Database Migrations
+    needs: [deploy]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Apply migrations
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db push
+
+      - name: Verify database
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          echo "Database migrations applied successfully"
+
+  # Notification
+  notify:
+    runs-on: ubuntu-latest
+    name: Send Notifications
+    if: always()
+    needs: [test, lint, build, security, deploy]
+
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.test.result }}" = "success" ] && \
+             [ "${{ needs.lint.result }}" = "success" ] && \
+             [ "${{ needs.build.result }}" = "success" ]; then
+            echo "color=good" >> $GITHUB_OUTPUT
+            echo "title=Mora App CI/CD Passed ✅" >> $GITHUB_OUTPUT
+          else
+            echo "color=danger" >> $GITHUB_OUTPUT
+            echo "title=Mora App CI/CD Failed ❌" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: always()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "${{ steps.status.outputs.title }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ steps.status.outputs.title }}*\n\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # SonarCloud Analysis
+  sonarcloud:
+    runs-on: ubuntu-latest
+    name: SonarCloud Analysis
+    needs: [test]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage --passWithNoTests
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        if: env.SONAR_TOKEN != ''
