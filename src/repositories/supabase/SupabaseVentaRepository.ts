@@ -3,6 +3,7 @@ import type { LineaVentaInput, TipoPago, Venta, VentaConDetalle } from '../../ty
 import type { VentaRepository } from '../VentaRepository';
 import { SupabaseProductoRepository } from './SupabaseProductoRepository';
 import { SupabaseFiadoRepository } from './SupabaseFiadoRepository';
+import { getCacheOrFetch, deleteCacheKeys, getCacheTTL, CACHE_KEYS } from '../../lib/cache';
 
 export class SupabaseVentaRepository implements VentaRepository {
   private productos: SupabaseProductoRepository;
@@ -14,45 +15,54 @@ export class SupabaseVentaRepository implements VentaRepository {
   }
 
   async getAll(): Promise<Venta[]> {
-    const { data, error } = await this.supabase
-      .from('ventas')
-      .select('*')
-      .order('fecha', { ascending: false });
-    if (error) throw new Error(error.message);
-    return data as Venta[];
+    const ttl = getCacheTTL('SALES');
+    return getCacheOrFetch(CACHE_KEYS.VENTAS_LIST, async () => {
+      const { data, error } = await this.supabase
+        .from('ventas')
+        .select('*')
+        .order('fecha', { ascending: false });
+      if (error) throw new Error(error.message);
+      return data as Venta[];
+    }, ttl);
   }
 
   async getDelDia(): Promise<Venta[]> {
-    const ahora = new Date();
-    const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()).toISOString();
-    const manana = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).toISOString();
-    const { data, error } = await this.supabase
-      .from('ventas')
-      .select('*')
-      .gte('fecha', inicio)
-      .lt('fecha', manana);
-    if (error) throw new Error(error.message);
-    return data as Venta[];
+    const ttl = getCacheTTL('SALES', 120); // Shorter TTL for today's sales
+    return getCacheOrFetch(CACHE_KEYS.VENTAS_TODAY, async () => {
+      const ahora = new Date();
+      const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()).toISOString();
+      const manana = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).toISOString();
+      const { data, error } = await this.supabase
+        .from('ventas')
+        .select('*')
+        .gte('fecha', inicio)
+        .lt('fecha', manana);
+      if (error) throw new Error(error.message);
+      return data as Venta[];
+    }, ttl);
   }
 
   async getConDetalle(id: number): Promise<VentaConDetalle> {
-    const { data, error } = await this.supabase
-      .from('ventas')
-      .select('*, detalle_venta(*, productos(*)), clientes(id, nombre, telefono)')
-      .eq('id', id)
-      .single();
-    if (error) throw new Error(error.message);
-    const v = data as any;
-    return {
-      id: v.id,
-      cliente_id: v.cliente_id ?? null,
-      tipo_pago: v.tipo_pago ?? 'contado',
-      total: v.total,
-      fecha: v.fecha,
-      created_at: v.created_at,
-      detalles: v.detalle_venta.map((d: any) => ({ ...d, producto: d.productos })),
-      cliente: v.clientes ?? undefined,
-    };
+    const ttl = getCacheTTL('SALES');
+    return getCacheOrFetch(CACHE_KEYS.VENTA(id), async () => {
+      const { data, error } = await this.supabase
+        .from('ventas')
+        .select('*, detalle_venta(*, productos(*)), clientes(id, nombre, telefono)')
+        .eq('id', id)
+        .single();
+      if (error) throw new Error(error.message);
+      const v = data as any;
+      return {
+        id: v.id,
+        cliente_id: v.cliente_id ?? null,
+        tipo_pago: v.tipo_pago ?? 'contado',
+        total: v.total,
+        fecha: v.fecha,
+        created_at: v.created_at,
+        detalles: v.detalle_venta.map((d: any) => ({ ...d, producto: d.productos })),
+        cliente: v.clientes ?? undefined,
+      };
+    }, ttl);
   }
 
   async create(
@@ -128,6 +138,25 @@ export class SupabaseVentaRepository implements VentaRepository {
       });
     }
 
+    // Invalidate caches
+    await this.invalidateVentaCaches(clienteId || undefined);
+
     return ventaFinal;
+  }
+
+  private async invalidateVentaCaches(clienteId?: number): Promise<void> {
+    const keysToInvalidate = [
+      CACHE_KEYS.VENTAS_LIST,
+      CACHE_KEYS.VENTAS_TODAY,
+      CACHE_KEYS.PRODUCTS_LIST,
+      CACHE_KEYS.PRODUCTS_LOW_STOCK,
+      CACHE_KEYS.PRODUCTS_BY_STOCK,
+    ];
+
+    if (clienteId) {
+      keysToInvalidate.push(CACHE_KEYS.VENTAS_BY_CLIENT(clienteId));
+    }
+
+    await deleteCacheKeys(keysToInvalidate);
   }
 }

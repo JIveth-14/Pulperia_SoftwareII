@@ -1,0 +1,476 @@
+{
+  "generado_at": "2026-09-08T00:00:00.000Z",
+  "motor": "PostgreSQL",
+  "base_datos": "Pulpería (Supabase)",
+  "descripcion": "Base de datos para gestión integral de pulpería: clientes, inventario, ventas y control de fiados",
+  "tablas": [
+    {
+      "nombre": "clientes",
+      "filas": 24,
+      "descripcion": "Registro de clientes de la pulpería con información de contacto e historial de compras",
+      "columnas": [
+        {
+          "nombre": "id",
+          "tipo": "BIGINT",
+          "pk": true,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "nombre",
+          "tipo": "VARCHAR(255)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "telefono",
+          "tipo": "VARCHAR(20)",
+          "pk": false,
+          "nulo": false,
+          "default": null,
+          "unique": true
+        },
+        {
+          "nombre": "direccion",
+          "tipo": "TEXT",
+          "pk": false,
+          "nulo": true,
+          "default": null
+        },
+        {
+          "nombre": "created_at",
+          "tipo": "TIMESTAMP WITH TIME ZONE",
+          "pk": false,
+          "nulo": false,
+          "default": "now()"
+        }
+      ]
+    },
+    {
+      "nombre": "productos",
+      "filas": 47,
+      "descripcion": "Inventario de productos con precios, stock actual y nivel mínimo de reorden",
+      "columnas": [
+        {
+          "nombre": "id",
+          "tipo": "BIGINT",
+          "pk": true,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "nombre",
+          "tipo": "VARCHAR(255)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "precio",
+          "tipo": "DECIMAL(10,2)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "stock",
+          "tipo": "INTEGER",
+          "pk": false,
+          "nulo": false,
+          "default": "0"
+        },
+        {
+          "nombre": "stock_minimo",
+          "tipo": "INTEGER",
+          "pk": false,
+          "nulo": false,
+          "default": "5"
+        },
+        {
+          "nombre": "created_at",
+          "tipo": "TIMESTAMP WITH TIME ZONE",
+          "pk": false,
+          "nulo": false,
+          "default": "now()"
+        }
+      ]
+    },
+    {
+      "nombre": "ventas",
+      "filas": 156,
+      "descripcion": "Cabecera de transacciones de venta con total de la operación y fecha",
+      "columnas": [
+        {
+          "nombre": "id",
+          "tipo": "BIGINT",
+          "pk": true,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "total",
+          "tipo": "DECIMAL(10,2)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "fecha",
+          "tipo": "DATE",
+          "pk": false,
+          "nulo": false,
+          "default": "CURRENT_DATE"
+        },
+        {
+          "nombre": "created_at",
+          "tipo": "TIMESTAMP WITH TIME ZONE",
+          "pk": false,
+          "nulo": false,
+          "default": "now()"
+        }
+      ]
+    },
+    {
+      "nombre": "detalle_venta",
+      "filas": 387,
+      "descripcion": "Líneas individuales de productos en cada venta con cantidad, precio unitario y subtotal",
+      "columnas": [
+        {
+          "nombre": "id",
+          "tipo": "BIGINT",
+          "pk": true,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "venta_id",
+          "tipo": "BIGINT",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "producto_id",
+          "tipo": "BIGINT",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "cantidad",
+          "tipo": "INTEGER",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "precio_unitario",
+          "tipo": "DECIMAL(10,2)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "subtotal",
+          "tipo": "DECIMAL(10,2)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        }
+      ]
+    },
+    {
+      "nombre": "fiados",
+      "filas": 63,
+      "descripcion": "Registro de deudas (fiados) de clientes con monto total y saldo pendiente actualizado",
+      "columnas": [
+        {
+          "nombre": "id",
+          "tipo": "BIGINT",
+          "pk": true,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "cliente_id",
+          "tipo": "BIGINT",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "monto_total",
+          "tipo": "DECIMAL(10,2)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "saldo_pendiente",
+          "tipo": "DECIMAL(10,2)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "estado",
+          "tipo": "VARCHAR(20)",
+          "pk": false,
+          "nulo": false,
+          "default": "'pendiente'"
+        },
+        {
+          "nombre": "fecha",
+          "tipo": "DATE",
+          "pk": false,
+          "nulo": false,
+          "default": "CURRENT_DATE"
+        },
+        {
+          "nombre": "created_at",
+          "tipo": "TIMESTAMP WITH TIME ZONE",
+          "pk": false,
+          "nulo": false,
+          "default": "now()"
+        }
+      ]
+    },
+    {
+      "nombre": "pagos",
+      "filas": 28,
+      "descripcion": "Registro de pagos parciales o totales de fiados con fecha y monto de cada pago",
+      "columnas": [
+        {
+          "nombre": "id",
+          "tipo": "BIGINT",
+          "pk": true,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "fiado_id",
+          "tipo": "BIGINT",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "monto_pagado",
+          "tipo": "DECIMAL(10,2)",
+          "pk": false,
+          "nulo": false,
+          "default": null
+        },
+        {
+          "nombre": "fecha_pago",
+          "tipo": "DATE",
+          "pk": false,
+          "nulo": false,
+          "default": "CURRENT_DATE"
+        },
+        {
+          "nombre": "created_at",
+          "tipo": "TIMESTAMP WITH TIME ZONE",
+          "pk": false,
+          "nulo": false,
+          "default": "now()"
+        }
+      ]
+    }
+  ],
+  "relaciones": [
+    {
+      "nombre": "fk_fiados_cliente_id",
+      "tabla_origen": "fiados",
+      "columna_origen": "cliente_id",
+      "tabla_destino": "clientes",
+      "columna_destino": "id",
+      "tipo": "MANY_TO_ONE"
+    },
+    {
+      "nombre": "fk_clientes_fiados",
+      "tabla_origen": "clientes",
+      "columna_origen": "id",
+      "tabla_destino": "fiados",
+      "columna_destino": "cliente_id",
+      "tipo": "ONE_TO_MANY"
+    },
+    {
+      "nombre": "fk_pagos_fiado_id",
+      "tabla_origen": "pagos",
+      "columna_origen": "fiado_id",
+      "tabla_destino": "fiados",
+      "columna_destino": "id",
+      "tipo": "MANY_TO_ONE"
+    },
+    {
+      "nombre": "fk_fiados_pagos",
+      "tabla_origen": "fiados",
+      "columna_origen": "id",
+      "tabla_destino": "pagos",
+      "columna_destino": "fiado_id",
+      "tipo": "ONE_TO_MANY"
+    },
+    {
+      "nombre": "fk_detalle_venta_venta_id",
+      "tabla_origen": "detalle_venta",
+      "columna_origen": "venta_id",
+      "tabla_destino": "ventas",
+      "columna_destino": "id",
+      "tipo": "MANY_TO_ONE"
+    },
+    {
+      "nombre": "fk_ventas_detalle_venta",
+      "tabla_origen": "ventas",
+      "columna_origen": "id",
+      "tabla_destino": "detalle_venta",
+      "columna_destino": "venta_id",
+      "tipo": "ONE_TO_MANY"
+    },
+    {
+      "nombre": "fk_detalle_venta_producto_id",
+      "tabla_origen": "detalle_venta",
+      "columna_origen": "producto_id",
+      "tabla_destino": "productos",
+      "columna_destino": "id",
+      "tipo": "MANY_TO_ONE"
+    },
+    {
+      "nombre": "fk_productos_detalle_venta",
+      "tabla_origen": "productos",
+      "columna_origen": "id",
+      "tabla_destino": "detalle_venta",
+      "columna_destino": "producto_id",
+      "tipo": "ONE_TO_MANY"
+    }
+  ],
+  "indices": [
+    {
+      "nombre": "pk_clientes",
+      "tabla": "clientes",
+      "columnas": [
+        "id"
+      ],
+      "unico": true
+    },
+    {
+      "nombre": "idx_clientes_telefono",
+      "tabla": "clientes",
+      "columnas": [
+        "telefono"
+      ],
+      "unico": true
+    },
+    {
+      "nombre": "idx_clientes_created_at",
+      "tabla": "clientes",
+      "columnas": [
+        "created_at"
+      ]
+    },
+    {
+      "nombre": "pk_productos",
+      "tabla": "productos",
+      "columnas": [
+        "id"
+      ],
+      "unico": true
+    },
+    {
+      "nombre": "idx_productos_created_at",
+      "tabla": "productos",
+      "columnas": [
+        "created_at"
+      ]
+    },
+    {
+      "nombre": "pk_ventas",
+      "tabla": "ventas",
+      "columnas": [
+        "id"
+      ],
+      "unico": true
+    },
+    {
+      "nombre": "idx_ventas_fecha",
+      "tabla": "ventas",
+      "columnas": [
+        "fecha"
+      ]
+    },
+    {
+      "nombre": "idx_ventas_created_at",
+      "tabla": "ventas",
+      "columnas": [
+        "created_at"
+      ]
+    },
+    {
+      "nombre": "pk_detalle_venta",
+      "tabla": "detalle_venta",
+      "columnas": [
+        "id"
+      ],
+      "unico": true
+    },
+    {
+      "nombre": "idx_detalle_venta_venta_id",
+      "tabla": "detalle_venta",
+      "columnas": [
+        "venta_id"
+      ]
+    },
+    {
+      "nombre": "idx_detalle_venta_producto_id",
+      "tabla": "detalle_venta",
+      "columnas": [
+        "producto_id"
+      ]
+    },
+    {
+      "nombre": "pk_fiados",
+      "tabla": "fiados",
+      "columnas": [
+        "id"
+      ],
+      "unico": true
+    },
+    {
+      "nombre": "idx_fiados_cliente_id",
+      "tabla": "fiados",
+      "columnas": [
+        "cliente_id"
+      ]
+    },
+    {
+      "nombre": "idx_fiados_created_at",
+      "tabla": "fiados",
+      "columnas": [
+        "created_at"
+      ]
+    },
+    {
+      "nombre": "pk_pagos",
+      "tabla": "pagos",
+      "columnas": [
+        "id"
+      ],
+      "unico": true
+    },
+    {
+      "nombre": "idx_pagos_fiado_id",
+      "tabla": "pagos",
+      "columnas": [
+        "fiado_id"
+      ]
+    },
+    {
+      "nombre": "idx_pagos_created_at",
+      "tabla": "pagos",
+      "columnas": [
+        "created_at"
+      ]
+    }
+  ]
+}
