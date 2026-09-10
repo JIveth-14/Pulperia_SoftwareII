@@ -1,4 +1,4 @@
-﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
 import {
   Alert,
@@ -64,7 +64,7 @@ export default function VentaFormScreen({ navigation }: Props) {
     handleRegistrar,
   } = useVentaForm();
 
-  // â”€â”€ Registrar venta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Registrar venta ────────────────────────────────────────────────────────
   const onRegistrar = async () => {
     if (lineas.length === 0) {
       Alert.alert('Sin productos', 'Agrega al menos un producto a la venta.');
@@ -74,7 +74,7 @@ export default function VentaFormScreen({ navigation }: Props) {
     if (ok) navigation.goBack();
   };
 
-  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <ScreenContainer style={styles.container}>
       <ScrollView
@@ -82,7 +82,7 @@ export default function VentaFormScreen({ navigation }: Props) {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        {/* â”€â”€ SECCIÃ“N 1: Cliente (opcional) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── SECCIÓN 1: Cliente (opcional) ───────────────────────────── */}
         <Card style={styles.seccionCard}>
           <Text style={styles.seccionTitulo}>Cliente</Text>
           <Text style={styles.seccionAyuda}>
@@ -115,7 +115,7 @@ export default function VentaFormScreen({ navigation }: Props) {
               {hayDeudaActiva && (
                 <View style={styles.deudaBanner}>
                   <Text style={styles.deudaBannerText}>
-                    âš  Deuda pendiente: L {saldoDeudaTotal.toFixed(2)}
+                    ⚠ Deuda pendiente: L {saldoDeudaTotal.toFixed(2)}
                   </Text>
                 </View>
               )}
@@ -123,7 +123,7 @@ export default function VentaFormScreen({ navigation }: Props) {
           )}
         </Card>
 
-        {/* â”€â”€ SECCIÃ“N 2: Forma de pago â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── SECCIÓN 2: Forma de pago ─────────────────────────────────── */}
         {clienteSel && (
           <Card style={styles.seccionCard}>
             <Text style={styles.seccionTitulo}>Forma de pago</Text>
@@ -137,7 +137,7 @@ export default function VentaFormScreen({ navigation }: Props) {
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.tipoBtnText, tipoPago === tipo && styles.tipoBtnTextActivo]}>
-                    {tipo === 'contado' ? 'ðŸ’µ Contado' : 'ðŸ“‹ Fiado'}
+                    {tipo === 'contado' ? '💵 Contado' : '📋 Fiado'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -145,7 +145,7 @@ export default function VentaFormScreen({ navigation }: Props) {
 
             {tipoPago === 'fiado' && (
               <Text style={styles.fiadoNota}>
-                Se crearÃ¡ un fiado de L {totalVenta.toFixed(2)} para {clienteSel.nombre}.
+                Se creará un fiado de L {totalVenta.toFixed(2)} para {clienteSel.nombre}.
               </Text>
             )}
 
@@ -154,7 +154,7 @@ export default function VentaFormScreen({ navigation }: Props) {
               <View style={styles.deudaSection}>
                 <View style={styles.deudaToggleRow}>
                   <Text style={styles.deudaLabel}>
-                    Â¿Cobrar deuda pendiente?
+                    ¿Cobrar deuda pendiente?
                   </Text>
                   <TouchableOpacity
                     style={[styles.toggle, pagarDeuda && styles.toggleActivo]}
@@ -171,7 +171,7 @@ export default function VentaFormScreen({ navigation }: Props) {
                 {pagarDeuda && (
                   <Input
                     label={`Monto a cobrar (deuda total: L ${saldoDeudaTotal.toFixed(2)})`}
-                    placeholder={`MÃ¡x L ${saldoDeudaTotal.toFixed(2)}`}
+                    placeholder={`Máx L ${saldoDeudaTotal.toFixed(2)}`}
                     value={montoDeuda}
                     onChangeText={(t) => {
                       setMontoDeuda(t);
@@ -186,7 +186,7 @@ export default function VentaFormScreen({ navigation }: Props) {
           </Card>
         )}
 
-        {/* â”€â”€ SECCIÃ“N 3: Agregar producto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── SECCIÓN 3: Agregar producto ─────────────────────────────── */}
         <Card style={styles.seccionCard}>
           <Text style={styles.seccionTitulo}>Agregar producto</Text>
 
@@ -202,7 +202,7 @@ export default function VentaFormScreen({ navigation }: Props) {
 
           {productoSel && (
             <Text style={styles.stockInfo}>
-              Disponible: {stockDisponible(productoSel)} uds Â· L {Number(productoSel.precio).toFixed(2)} c/u
+              Disponible: {stockDisponible(productoSel)} uds · L {Number(productoSel.precio).toFixed(2)} c/u
             </Text>
           )}
 
@@ -224,7 +224,7 @@ export default function VentaFormScreen({ navigation }: Props) {
           />
         </Card>
 
-        {/* â”€â”€ LÃNEAS AGREGADAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── LÍNEAS AGREGADAS ────────────────────────────────────────── */}
         {lineas.length > 0 && (
           <Text style={styles.subTitulo}>Productos en la venta</Text>
         )}
@@ -235,7 +235,7 @@ export default function VentaFormScreen({ navigation }: Props) {
               <View style={styles.lineaInfo}>
                 <Text style={styles.lineaNombre}>{item.producto.nombre}</Text>
                 <Text style={styles.lineaSub}>
-                  {item.cantidad} Ã— L {Number(item.producto.precio).toFixed(2)}
+                  {item.cantidad} × L {Number(item.producto.precio).toFixed(2)}
                 </Text>
               </View>
               <View style={styles.lineaDer}>
@@ -246,7 +246,7 @@ export default function VentaFormScreen({ navigation }: Props) {
                   onPress={() => handleQuitarLinea(item.producto.id)}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Text style={styles.quitar}>âœ•</Text>
+                  <Text style={styles.quitar}>✕</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -257,7 +257,7 @@ export default function VentaFormScreen({ navigation }: Props) {
           <EmptyState message="Selecciona productos para armar la venta" />
         )}
 
-        {/* â”€â”€ FOOTER: total + registrar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── FOOTER: total + registrar ────────────────────────────────── */}
         {lineas.length > 0 && (
           <View style={styles.footer}>
             <View style={styles.totalRow}>
@@ -268,7 +268,7 @@ export default function VentaFormScreen({ navigation }: Props) {
             {pagarDeuda && montoDeuda ? (
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabelSub}>+ Cobro de deuda</Text>
-                <Text style={styles.totalMontoSub}>L {Number.parseFloat(montoDeuda || '0').toFixed(2)}</Text>
+                <Text style={styles.totalMontoSub}>L {parseFloat(montoDeuda || '0').toFixed(2)}</Text>
               </View>
             ) : null}
 
@@ -283,7 +283,7 @@ export default function VentaFormScreen({ navigation }: Props) {
         )}
       </ScrollView>
 
-      {/* â”€â”€ MODAL: Selector de producto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── MODAL: Selector de producto ─────────────────────────────────── */}
       <Modal visible={showProductoModal} animationType="slide" transparent>
         <View style={styles.overlay}>
           <View style={styles.sheet}>
@@ -312,7 +312,7 @@ export default function VentaFormScreen({ navigation }: Props) {
                   >
                     <Text style={styles.modalItemNombre}>{item.nombre}</Text>
                     <Text style={styles.modalItemInfo}>
-                      L {Number(item.precio).toFixed(2)} Â· stock: {stockDisponible(item)} uds
+                      L {Number(item.precio).toFixed(2)} · stock: {stockDisponible(item)} uds
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -324,7 +324,7 @@ export default function VentaFormScreen({ navigation }: Props) {
         </View>
       </Modal>
 
-      {/* â”€â”€ MODAL: Selector de cliente â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── MODAL: Selector de cliente ───────────────────────────────────── */}
       <Modal visible={showClienteModal} animationType="slide" transparent>
         <View style={styles.overlay}>
           <View style={styles.sheet}>
@@ -350,8 +350,8 @@ export default function VentaFormScreen({ navigation }: Props) {
                     <Text style={styles.modalItemInfo}>
                       {item.telefono}
                       {item.saldo > 0
-                        ? `  Â·  Deuda: L ${Number(item.saldo).toFixed(2)}`
-                        : '  Â·  Sin deuda'}
+                        ? `  ·  Deuda: L ${Number(item.saldo).toFixed(2)}`
+                        : '  ·  Sin deuda'}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   selectorPlaceholder: { fontSize: fontSize.md, color: colors.textSecondary },
   stockInfo: { fontSize: fontSize.xs, color: colors.textSecondary, marginBottom: spacing.sm },
 
-  // LÃ­neas de venta
+  // Líneas de venta
   lineaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   lineaInfo: { flex: 1 },
   lineaNombre: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
@@ -516,4 +516,3 @@ const styles = StyleSheet.create({
   modalItemInfo: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: 2 },
   separador: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.md },
 });
-

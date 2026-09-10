@@ -180,7 +180,7 @@ export function validateInput(data: any, schema: Record<string, string>) {
         errors[field] = `Invalid ${field}`;
       }
     } else if (type === 'number') {
-      if (!value || Number.isNaN(Number(value))) {
+      if (!value || isNaN(Number(value))) {
         errors[field] = `${field} must be a number`;
       }
     } else if (type === 'string') {
@@ -188,7 +188,7 @@ export function validateInput(data: any, schema: Record<string, string>) {
         errors[field] = `${field} is required`;
       }
     } else if (type === 'phone') {
-      if (!value || !/^\+?[\d\s\-()]{5,}$/.test(value)) {
+      if (!value || !/^\+?[\d\s\-()]+$/.test(value)) {
         errors[field] = `Invalid phone number`;
       }
     }

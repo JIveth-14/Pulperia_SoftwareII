@@ -1,4 +1,4 @@
-﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text } from 'react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
@@ -33,7 +33,7 @@ export default function FiadoFormScreen({ route, navigation }: Props) {
 
     setLoading(true);
     try {
-      await createFiado({ cliente_id: clienteId, monto_total: Number.parseFloat(monto) });
+      await createFiado({ cliente_id: clienteId, monto_total: parseFloat(monto) });
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'No se pudo registrar el fiado');
@@ -80,4 +80,3 @@ const styles = StyleSheet.create({
   },
   btn: { marginTop: spacing.sm },
 });
-

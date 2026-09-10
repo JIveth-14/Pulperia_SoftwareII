@@ -1,4 +1,4 @@
-﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
@@ -69,9 +69,9 @@ export default function ProductoFormScreen({ route, navigation }: Props) {
     try {
       const datos = {
         nombre: nombre.trim(),
-        precio: Number.parseFloat(precio),
-        stock: Number.parseInt(stock, 10),
-        stock_minimo: Number.parseInt(stockMinimo, 10),
+        precio: parseFloat(precio),
+        stock: parseInt(stock, 10),
+        stock_minimo: parseInt(stockMinimo, 10),
       };
       if (esEdicion && productoId) {
         await updateProducto(productoId, datos);
@@ -125,7 +125,7 @@ export default function ProductoFormScreen({ route, navigation }: Props) {
           keyboardType="number-pad"
         />
         <Input
-          label="Stock mÃ­nimo"
+          label="Stock mínimo"
           placeholder="5"
           value={stockMinimo}
           onChangeText={(t) => {
@@ -150,4 +150,3 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, paddingBottom: 32 },
   btn: { marginTop: 8 },
 });
-

@@ -21,7 +21,7 @@ export default function PagoFormScreen({ route, navigation }: Props) {
   const validar = (valor: string): string | undefined => {
     const base = esMontoValido(valor);
     if (base) return base;
-    if (Number.parseFloat(valor) > saldoPendiente) return 'El monto supera el saldo pendiente';
+    if (parseFloat(valor) > saldoPendiente) return 'El monto supera el saldo pendiente';
     return undefined;
   };
 
@@ -32,7 +32,7 @@ export default function PagoFormScreen({ route, navigation }: Props) {
 
     setLoading(true);
     try {
-      await createPago({ fiado_id: fiadoId, monto_pagado: Number.parseFloat(monto) });
+      await createPago({ fiado_id: fiadoId, monto_pagado: parseFloat(monto) });
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'No se pudo registrar el pago');

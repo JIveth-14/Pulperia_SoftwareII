@@ -1,4 +1,4 @@
-﻿import { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { ClienteConSaldo, Fiado, LineaVentaInput, Producto, TipoPago } from '../../../types';
 import { clienteService } from '../../clientes/services/clientesService';
 import { fiadoService } from '../../fiados/services/fiadosService';
@@ -52,37 +52,37 @@ export interface UseVentaFormResult {
 }
 
 /**
- * Hook orquestador del formulario de venta. Encapsula la lÃ³gica de negocio y
+ * Hook orquestador del formulario de venta. Encapsula la lógica de negocio y
  * el acceso a los servicios de clientes, fiados, pagos y ventas, de modo que
- * la pantalla dependa de una Ãºnica interfaz (ISP) en lugar de acoplarse a
+ * la pantalla dependa de una única interfaz (ISP) en lugar de acoplarse a
  * cuatro servicios distintos.
  */
 export function useVentaForm(): UseVentaFormResult {
-  // â”€â”€ Productos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Productos ──────────────────────────────────────────────────────────────
   const [lineas, setLineas] = useState<LineaLocal[]>([]);
   const [productoSel, setProductoSel] = useState<Producto | null>(null);
   const [cantidadInput, setCantidadInput] = useState('');
   const [errCantidad, setErrCantidad] = useState<string | undefined>(undefined);
   const [showProductoModal, setShowProductoModal] = useState(false);
 
-  // â”€â”€ Cliente â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Cliente ────────────────────────────────────────────────────────────────
   const [clienteSel, setClienteSel] = useState<ClienteConSaldo | null>(null);
   const [clientes, setClientes] = useState<ClienteConSaldo[]>([]);
   const [fiadosCliente, setFiadosCliente] = useState<Fiado[]>([]);
   const [loadingClientes, setLoadingClientes] = useState(false);
   const [showClienteModal, setShowClienteModal] = useState(false);
 
-  // â”€â”€ Pago â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Pago ───────────────────────────────────────────────────────────────────
   const [tipoPago, setTipoPago] = useState<TipoPago>('contado');
   const [pagarDeuda, setPagarDeuda] = useState(false);
   const [montoDeuda, setMontoDeuda] = useState('');
   const [errDeuda, setErrDeuda] = useState<string | undefined>(undefined);
 
-  // â”€â”€ General â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── General ────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // â”€â”€ Computed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Computed ───────────────────────────────────────────────────────────────
   const stockDisponible = (p: Producto) =>
     p.stock - (lineas.find((l) => l.producto.id === p.id)?.cantidad ?? 0);
 
@@ -98,17 +98,17 @@ export function useVentaForm(): UseVentaFormResult {
 
   const hayDeudaActiva = saldoDeudaTotal > 0;
 
-  // â”€â”€ Handlers: productos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Handlers: productos ────────────────────────────────────────────────────
   const handleAgregarLinea = () => {
     if (!productoSel) return;
-    const cant = Number.parseInt(cantidadInput, 10);
-    if (Number.isNaN(cant) || cant <= 0) {
-      setErrCantidad('Ingresa una cantidad vÃ¡lida');
+    const cant = parseInt(cantidadInput, 10);
+    if (isNaN(cant) || cant <= 0) {
+      setErrCantidad('Ingresa una cantidad válida');
       return;
     }
     const disponible = stockDisponible(productoSel);
     if (cant > disponible) {
-      setErrCantidad(`MÃ¡ximo disponible: ${disponible} uds`);
+      setErrCantidad(`Máximo disponible: ${disponible} uds`);
       return;
     }
     setLineas((prev) => {
@@ -133,7 +133,7 @@ export function useVentaForm(): UseVentaFormResult {
     }
   };
 
-  // â”€â”€ Handlers: cliente â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Handlers: cliente ──────────────────────────────────────────────────────
   const handleAbrirModalCliente = useCallback(async () => {
     if (clientes.length === 0) {
       setLoadingClientes(true);
@@ -173,7 +173,7 @@ export function useVentaForm(): UseVentaFormResult {
     setErrDeuda(undefined);
   }, []);
 
-  // â”€â”€ Handlers: pago â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Handlers: pago ────────────────────────────────────────────────────────
   const handleCambiarTipoPago = useCallback((tipo: TipoPago) => {
     setTipoPago(tipo);
     setPagarDeuda(false);
@@ -181,15 +181,15 @@ export function useVentaForm(): UseVentaFormResult {
     setErrDeuda(undefined);
   }, []);
 
-  // â”€â”€ Registrar venta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Registrar venta ────────────────────────────────────────────────────────
   const handleRegistrar = useCallback(async (): Promise<boolean> => {
     if (lineas.length === 0) return false;
 
     // Validar monto de deuda si aplica
     if (pagarDeuda && clienteSel) {
-      const monto = Number.parseFloat(montoDeuda);
-      if (Number.isNaN(monto) || monto <= 0) {
-        setErrDeuda('Ingresa un monto vÃ¡lido');
+      const monto = parseFloat(montoDeuda);
+      if (isNaN(monto) || monto <= 0) {
+        setErrDeuda('Ingresa un monto válido');
         return false;
       }
       if (monto > saldoDeudaTotal) {
@@ -209,7 +209,7 @@ export function useVentaForm(): UseVentaFormResult {
       await ventaService.createVenta(lineasInput, clienteSel?.id, tipoPago);
 
       if (pagarDeuda && clienteSel && montoDeuda) {
-        await pagoService.pagarDeudaCliente(clienteSel.id, Number.parseFloat(montoDeuda));
+        await pagoService.pagarDeudaCliente(clienteSel.id, parseFloat(montoDeuda));
       }
 
       return true;

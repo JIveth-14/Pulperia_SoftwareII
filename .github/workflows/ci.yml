@@ -13,12 +13,12 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
-      - uses: actions/setup-node@60edb5dd545a775178fce8f3e3777f52eca5d26f
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - run: npm ci --ignore-scripts
+      - run: npm ci
       - run: npm run typecheck
       - run: npm run build
       - run: npm test -- --watchAll=false --passWithNoTests

@@ -32,9 +32,9 @@ export const PaymentForm: FC<PaymentFormProps> = ({
     setIsLoading(true);
 
     try {
-      const parsedAmount = Number.parseFloat(amount);
+      const parsedAmount = parseFloat(amount);
 
-      if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
         setError('El monto debe ser mayor a 0');
         setIsLoading(false);
         return;
@@ -100,13 +100,12 @@ export const PaymentForm: FC<PaymentFormProps> = ({
       <div className="space-y-4">
         {/* Monto */}
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Monto a Pagar *
           </label>
           <div className="relative">
             <span className="absolute left-3 top-3 text-gray-600 font-semibold">$</span>
             <input
-              id="amount"
               type="number"
               step="0.01"
               value={amount}
@@ -150,11 +149,10 @@ export const PaymentForm: FC<PaymentFormProps> = ({
 
         {/* Número de Recibo */}
         <div>
-          <label htmlFor="receiptNumber" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Número de Recibo
           </label>
           <input
-            id="receiptNumber"
             type="text"
             value={receiptNumber}
             onChange={(e) => setReceiptNumber(e.target.value)}
@@ -165,11 +163,10 @@ export const PaymentForm: FC<PaymentFormProps> = ({
 
         {/* Notas */}
         <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Notas
           </label>
           <textarea
-            id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Observaciones del pago..."
