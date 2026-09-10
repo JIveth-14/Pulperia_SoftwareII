@@ -43,6 +43,25 @@ export default function RootLayout({
     <html lang="es">
       <body className="antialiased">
         <ToastProvider>{children}</ToastProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').then(
+                  (registration) => {
+                    console.log('✅ Service Worker registrado:', registration);
+                    console.log('📍 Scope:', registration.scope);
+                  },
+                  (error) => {
+                    console.warn('⚠️ Fallo al registrar Service Worker:', error);
+                  }
+                );
+              } else {
+                console.warn('⚠️ Service Worker no soportado en este navegador');
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

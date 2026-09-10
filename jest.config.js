@@ -14,12 +14,8 @@ const config = {
     '!src/**/*.d.ts',
     '!src/**/*.stories.{js,jsx,ts,tsx}',
     '!src/**/__tests__/**',
-    '!src/app/**',
-    '!src/components/**',
-    '!src/modules/**/screens/**',
-    '!src/modules/**/components/**',
-    '!src/modules/**/hooks/**',
-    '!src/repositories/**',
+    '!src/app/layout.tsx',
+    '!src/app/page.tsx',
   ],
   coverageThreshold: {
     global: {
@@ -30,7 +26,7 @@ const config = {
     },
   },
   collectCoverage: true,
-  coverageReporters: ['text', 'text-summary', 'html', 'lcov', 'json'],
+  coverageReporters: ['text', 'text-summary', 'html', 'lcov', 'json-summary'],
   coverageDirectory: 'coverage',
 }
 
