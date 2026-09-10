@@ -20,12 +20,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178fce8f3e3777f52eca5d26f
+        uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: 'npm'
@@ -42,7 +42,7 @@ jobs:
         run: ls -la coverage/ || echo "Coverage dir not found"
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@4a3e55b9fc8b54f8d9c79c6f3daeb36d06e0ceaa
+        uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
