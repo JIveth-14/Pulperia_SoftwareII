@@ -17,25 +17,27 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a775178fce8f3e3777f52eca5d26f
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run unit tests
         run: npm test -- --coverage --passWithNoTests
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@5ecb98a3c6b747ed38dc09f393e3c7b1faac3ff2
         with:
           files: ./coverage/lcov.info
           fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # Lint & Type Check
   lint:
@@ -43,8 +45,8 @@ jobs:
     name: Lint & Type Check
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
+      - uses: actions/setup-node@60edb5dd545a775178fce8f3e3777f52eca5d26f
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -65,8 +67,8 @@ jobs:
     needs: [test, lint]
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
+      - uses: actions/setup-node@60edb5dd545a775178fce8f3e3777f52eca5d26f
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -86,10 +88,10 @@ jobs:
     name: Security Scan
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@91713d97b33d2a76ffa932863169be0dfcc80640
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -97,7 +99,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@3ab4101902695724f1de928f0f9f91d3af6e6fc6
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -110,8 +112,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
+      - uses: actions/setup-node@60edb5dd545a775178fce8f3e3777f52eca5d26f
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -131,7 +133,7 @@ jobs:
             --name=mora-app
 
       - name: Notify deployment
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         if: always()
         with:
           script: |
@@ -152,10 +154,10 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
 
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@9e6f2d996ad72d8cd22dd96d9dfc137a5cda1dc2
 
       - name: Apply migrations
         env:
@@ -193,7 +195,7 @@ jobs:
 
       - name: Send Slack notification
         if: always()
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@37ebaef184d7626awbf2e36eaf585feb4e9ff42a
         with:
           payload: |
             {
@@ -219,11 +221,11 @@ jobs:
     needs: [test]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@60edb5dd545a775178fce8f3e3777f52eca5d26f
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -235,8 +237,7 @@ jobs:
         run: npm test -- --coverage --passWithNoTests
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@4a3e55b9fc8b54f8d9c79c6f3daeb36d06e0ceaa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        if: env.SONAR_TOKEN != ''
