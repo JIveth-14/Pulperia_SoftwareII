@@ -20,18 +20,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@a5ac7e51b41094c7d81f18d3f54b3711d3e44aa2
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a775178fce8f3e3777f52eca5d26f
         with:
           node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run tests with coverage
         run: npm test -- --coverage --watchAll=false --passWithNoTests
@@ -42,7 +42,7 @@ jobs:
         run: ls -la coverage/ || echo "Coverage dir not found"
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@4a3e55b9fc8b54f8d9c79c6f3daeb36d06e0ceaa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -50,3 +50,5 @@ jobs:
           args: >
             -Dsonar.projectKey=JIveth-14_Pulperia_SoftwareII
             -Dsonar.organization=jiveth-14
+            -Dsonar.javascript.file.suffixes=.js,.jsx
+            -Dsonar.typescript.file.suffixes=.ts,.tsx
