@@ -1,6 +1,6 @@
 {
-  "generado_at": "2026-09-08T00:00:00.000Z",
-  "motor": "PostgreSQL",
+  "generado_at": "2026-09-08T14:30:00Z",
+  "motor": "postgres",
   "base_datos": "Pulpería (Supabase)",
   "descripcion": "Base de datos para gestión integral de pulpería: clientes, inventario, ventas y control de fiados",
   "tablas": [
@@ -45,6 +45,23 @@
           "nulo": false,
           "default": "now()"
         }
+      ],
+      "indices": [
+        "pk_clientes",
+        "idx_clientes_telefono",
+        "idx_clientes_created_at"
+      ],
+      "relaciones": [
+        {
+          "columna": "id",
+          "referencia": "fiados.cliente_id",
+          "tipo": "ONE_TO_MANY"
+        }
+      ],
+      "politicas_rls": [
+        "clientes_select_propias",
+        "clientes_insert_propias",
+        "clientes_update_propias"
       ]
     },
     {
@@ -94,6 +111,21 @@
           "nulo": false,
           "default": "now()"
         }
+      ],
+      "indices": [
+        "pk_productos",
+        "idx_productos_created_at"
+      ],
+      "relaciones": [
+        {
+          "columna": "id",
+          "referencia": "detalle_venta.producto_id",
+          "tipo": "ONE_TO_MANY"
+        }
+      ],
+      "politicas_rls": [
+        "productos_select_all",
+        "productos_insert_admin"
       ]
     },
     {
@@ -129,6 +161,22 @@
           "nulo": false,
           "default": "now()"
         }
+      ],
+      "indices": [
+        "pk_ventas",
+        "idx_ventas_fecha",
+        "idx_ventas_created_at"
+      ],
+      "relaciones": [
+        {
+          "columna": "id",
+          "referencia": "detalle_venta.venta_id",
+          "tipo": "ONE_TO_MANY"
+        }
+      ],
+      "politicas_rls": [
+        "ventas_select_propias",
+        "ventas_insert_propias"
       ]
     },
     {
@@ -178,6 +226,27 @@
           "nulo": false,
           "default": null
         }
+      ],
+      "indices": [
+        "pk_detalle_venta",
+        "idx_detalle_venta_venta_id",
+        "idx_detalle_venta_producto_id"
+      ],
+      "relaciones": [
+        {
+          "columna": "venta_id",
+          "referencia": "ventas.id",
+          "tipo": "MANY_TO_ONE"
+        },
+        {
+          "columna": "producto_id",
+          "referencia": "productos.id",
+          "tipo": "MANY_TO_ONE"
+        }
+      ],
+      "politicas_rls": [
+        "detalle_venta_select_ventas_propias",
+        "detalle_venta_insert_ventas_propias"
       ]
     },
     {
@@ -234,6 +303,28 @@
           "nulo": false,
           "default": "now()"
         }
+      ],
+      "indices": [
+        "pk_fiados",
+        "idx_fiados_cliente_id",
+        "idx_fiados_created_at"
+      ],
+      "relaciones": [
+        {
+          "columna": "cliente_id",
+          "referencia": "clientes.id",
+          "tipo": "MANY_TO_ONE"
+        },
+        {
+          "columna": "id",
+          "referencia": "pagos.fiado_id",
+          "tipo": "ONE_TO_MANY"
+        }
+      ],
+      "politicas_rls": [
+        "fiados_select_clientes_propios",
+        "fiados_insert_clientes_propios",
+        "fiados_update_clientes_propios"
       ]
     },
     {
@@ -276,200 +367,22 @@
           "nulo": false,
           "default": "now()"
         }
-      ]
-    }
-  ],
-  "relaciones": [
-    {
-      "nombre": "fk_fiados_cliente_id",
-      "tabla_origen": "fiados",
-      "columna_origen": "cliente_id",
-      "tabla_destino": "clientes",
-      "columna_destino": "id",
-      "tipo": "MANY_TO_ONE"
-    },
-    {
-      "nombre": "fk_clientes_fiados",
-      "tabla_origen": "clientes",
-      "columna_origen": "id",
-      "tabla_destino": "fiados",
-      "columna_destino": "cliente_id",
-      "tipo": "ONE_TO_MANY"
-    },
-    {
-      "nombre": "fk_pagos_fiado_id",
-      "tabla_origen": "pagos",
-      "columna_origen": "fiado_id",
-      "tabla_destino": "fiados",
-      "columna_destino": "id",
-      "tipo": "MANY_TO_ONE"
-    },
-    {
-      "nombre": "fk_fiados_pagos",
-      "tabla_origen": "fiados",
-      "columna_origen": "id",
-      "tabla_destino": "pagos",
-      "columna_destino": "fiado_id",
-      "tipo": "ONE_TO_MANY"
-    },
-    {
-      "nombre": "fk_detalle_venta_venta_id",
-      "tabla_origen": "detalle_venta",
-      "columna_origen": "venta_id",
-      "tabla_destino": "ventas",
-      "columna_destino": "id",
-      "tipo": "MANY_TO_ONE"
-    },
-    {
-      "nombre": "fk_ventas_detalle_venta",
-      "tabla_origen": "ventas",
-      "columna_origen": "id",
-      "tabla_destino": "detalle_venta",
-      "columna_destino": "venta_id",
-      "tipo": "ONE_TO_MANY"
-    },
-    {
-      "nombre": "fk_detalle_venta_producto_id",
-      "tabla_origen": "detalle_venta",
-      "columna_origen": "producto_id",
-      "tabla_destino": "productos",
-      "columna_destino": "id",
-      "tipo": "MANY_TO_ONE"
-    },
-    {
-      "nombre": "fk_productos_detalle_venta",
-      "tabla_origen": "productos",
-      "columna_origen": "id",
-      "tabla_destino": "detalle_venta",
-      "columna_destino": "producto_id",
-      "tipo": "ONE_TO_MANY"
-    }
-  ],
-  "indices": [
-    {
-      "nombre": "pk_clientes",
-      "tabla": "clientes",
-      "columnas": [
-        "id"
       ],
-      "unico": true
-    },
-    {
-      "nombre": "idx_clientes_telefono",
-      "tabla": "clientes",
-      "columnas": [
-        "telefono"
+      "indices": [
+        "pk_pagos",
+        "idx_pagos_fiado_id",
+        "idx_pagos_created_at"
       ],
-      "unico": true
-    },
-    {
-      "nombre": "idx_clientes_created_at",
-      "tabla": "clientes",
-      "columnas": [
-        "created_at"
-      ]
-    },
-    {
-      "nombre": "pk_productos",
-      "tabla": "productos",
-      "columnas": [
-        "id"
+      "relaciones": [
+        {
+          "columna": "fiado_id",
+          "referencia": "fiados.id",
+          "tipo": "MANY_TO_ONE"
+        }
       ],
-      "unico": true
-    },
-    {
-      "nombre": "idx_productos_created_at",
-      "tabla": "productos",
-      "columnas": [
-        "created_at"
-      ]
-    },
-    {
-      "nombre": "pk_ventas",
-      "tabla": "ventas",
-      "columnas": [
-        "id"
-      ],
-      "unico": true
-    },
-    {
-      "nombre": "idx_ventas_fecha",
-      "tabla": "ventas",
-      "columnas": [
-        "fecha"
-      ]
-    },
-    {
-      "nombre": "idx_ventas_created_at",
-      "tabla": "ventas",
-      "columnas": [
-        "created_at"
-      ]
-    },
-    {
-      "nombre": "pk_detalle_venta",
-      "tabla": "detalle_venta",
-      "columnas": [
-        "id"
-      ],
-      "unico": true
-    },
-    {
-      "nombre": "idx_detalle_venta_venta_id",
-      "tabla": "detalle_venta",
-      "columnas": [
-        "venta_id"
-      ]
-    },
-    {
-      "nombre": "idx_detalle_venta_producto_id",
-      "tabla": "detalle_venta",
-      "columnas": [
-        "producto_id"
-      ]
-    },
-    {
-      "nombre": "pk_fiados",
-      "tabla": "fiados",
-      "columnas": [
-        "id"
-      ],
-      "unico": true
-    },
-    {
-      "nombre": "idx_fiados_cliente_id",
-      "tabla": "fiados",
-      "columnas": [
-        "cliente_id"
-      ]
-    },
-    {
-      "nombre": "idx_fiados_created_at",
-      "tabla": "fiados",
-      "columnas": [
-        "created_at"
-      ]
-    },
-    {
-      "nombre": "pk_pagos",
-      "tabla": "pagos",
-      "columnas": [
-        "id"
-      ],
-      "unico": true
-    },
-    {
-      "nombre": "idx_pagos_fiado_id",
-      "tabla": "pagos",
-      "columnas": [
-        "fiado_id"
-      ]
-    },
-    {
-      "nombre": "idx_pagos_created_at",
-      "tabla": "pagos",
-      "columnas": [
-        "created_at"
+      "politicas_rls": [
+        "pagos_select_fiados_propios",
+        "pagos_insert_fiados_propios"
       ]
     }
   ]

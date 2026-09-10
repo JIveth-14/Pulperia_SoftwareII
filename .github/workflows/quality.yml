@@ -2,9 +2,10 @@ name: Code Quality & Coverage
 
 on:
   push:
-    branches: [main, testMigration, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main, testMigration, develop]
+    branches: [main, master, develop]
+  workflow_dispatch:
 
 jobs:
   test-and-coverage:
@@ -96,6 +97,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=JIveth-14_Pulperia_SoftwareII
+            -Dsonar.organization=jiveth-14
         if: env.SONAR_TOKEN != ''
         continue-on-error: true
 
@@ -103,7 +108,7 @@ jobs:
         run: |
           if [ -n "${{ secrets.SONAR_TOKEN }}" ]; then
             echo "✅ SonarCloud analysis completed"
-            echo "📊 View results: https://sonarcloud.io/projects/pulperia-web"
+            echo "📊 View results: https://sonarcloud.io/projects/JIveth-14_Pulperia_SoftwareII"
           else
             echo "⚠️ SONAR_TOKEN not configured in GitHub Secrets"
             echo "📖 Setup instructions: See SONARCLOUD_SETUP.md"
