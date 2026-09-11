@@ -61,10 +61,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=JIveth-14_Pulperia_SoftwareII
-            -Dsonar.organization=jiveth-14
-            -Dsonar.javascript.file.suffixes=.js,.jsx
-            -Dsonar.typescript.file.suffixes=.ts,.tsx
-            -Dsonar.sources=src
-            -Dsonar.tests=__tests__
             -Dsonar.qualitygate.wait=true
