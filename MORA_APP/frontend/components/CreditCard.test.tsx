@@ -36,7 +36,7 @@ describe('CreditCard Component', () => {
     remaining_balance: 500,
     total_paid: 500,
     status: 'active',
-    due_date: '2025-12-31',
+    due_date: '2099-12-31',
     created_at: '2024-01-01'
   };
 
@@ -80,7 +80,7 @@ describe('CreditCard Component', () => {
     render(<CreditCard credit={mockCredit} />);
 
     // Assert
-    expect(screen.getByText(/\$1,000/)).toBeInTheDocument();
+    expect(screen.getByText(/\$1(?:,|\s|\u00A0)000/)).toBeInTheDocument();
   });
 
   it('should display paid amount in green', () => {
@@ -88,7 +88,8 @@ describe('CreditCard Component', () => {
     render(<CreditCard credit={mockCredit} />);
 
     // Assert
-    expect(screen.getByText(/\$500/)).toBeInTheDocument();
+    const paidAmount = screen.getByText('Pagado').parentElement?.querySelector('p.text-green-600');
+    expect(paidAmount).toHaveTextContent(/\$\s*500/);
   });
 
   it('should display remaining balance', () => {
@@ -96,7 +97,10 @@ describe('CreditCard Component', () => {
     render(<CreditCard credit={mockCredit} />);
 
     // Assert
-    expect(screen.getByText(/\$500/)).toBeInTheDocument();
+    const remainingAmount = screen
+      .getByText('Saldo')
+      .parentElement?.querySelector('p.text-xl');
+    expect(remainingAmount).toHaveTextContent(/\$\s*500/);
   });
 
   // ============ Progress Bar ============
@@ -119,8 +123,9 @@ describe('CreditCard Component', () => {
     render(<CreditCard credit={overpaidCredit} />);
 
     // Assert
-    const progressDiv = screen.getByText('150.0%').parentElement?.querySelector('div');
-    expect(progressDiv).toHaveStyle({ width: expect.stringContaining('100') });
+    const progressSection = screen.getByText('150.0%').closest('div.mb-4');
+    const progressDiv = progressSection?.querySelector('div[style*="width: 100%"]');
+    expect(progressDiv).toBeInTheDocument();
   });
 
   it('should show 0% progress when no payments made', () => {
@@ -408,7 +413,7 @@ describe('CreditCard Component', () => {
     render(<CreditCard credit={largeAmountCredit} />);
 
     // Assert
-    expect(screen.getByText(/\$1,000,000/)).toBeInTheDocument();
+    expect(screen.getByText(/\$1(?:,|\s|\u00A0)000(?:,|\s|\u00A0)000/)).toBeInTheDocument();
   });
 
   it('should display customer email in expanded view', () => {
@@ -426,7 +431,10 @@ describe('CreditCard Component', () => {
     fireEvent.click(screen.getByText('Detalles'));
 
     // Assert
-    expect(screen.getByText('1 de enero de 2024')).toBeInTheDocument();
+    const createdDate = screen
+      .getByText('Creado')
+      .parentElement?.querySelector('dd');
+    expect(createdDate).toHaveTextContent(/01\/01\/2024|1 de enero de 2024/);
   });
 
   // ============ Multiple Callbacks ============

@@ -16,6 +16,7 @@ export const PaymentForm: FC<PaymentFormProps> = ({
   maxAmount,
   onSuccess
 }) => {
+  const formattedMaxAmount = maxAmount.toLocaleString('es-CR');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | 'card' | 'check'>('cash');
   const [receiptNumber, setReceiptNumber] = useState('');
@@ -41,7 +42,7 @@ export const PaymentForm: FC<PaymentFormProps> = ({
       }
 
       if (parsedAmount > maxAmount) {
-        setError(`El monto no puede exceder $${maxAmount.toLocaleString('es-CR')}`);
+        setError(`El monto no puede exceder $${formattedMaxAmount}`);
         setIsLoading(false);
         return;
       }
@@ -100,13 +101,14 @@ export const PaymentForm: FC<PaymentFormProps> = ({
       <div className="space-y-4">
         {/* Monto */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="payment-amount" className="block text-sm font-medium text-gray-700 mb-1">
             Monto a Pagar *
           </label>
           <div className="relative">
             <span className="absolute left-3 top-3 text-gray-600 font-semibold">$</span>
             <input
               type="number"
+              id="payment-amount"
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
@@ -116,7 +118,7 @@ export const PaymentForm: FC<PaymentFormProps> = ({
             />
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Máximo: ${maxAmount.toLocaleString('es-CR')}
+            Máximo: ${formattedMaxAmount}
           </p>
         </div>
 
@@ -149,11 +151,12 @@ export const PaymentForm: FC<PaymentFormProps> = ({
 
         {/* Número de Recibo */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="payment-receipt-number" className="block text-sm font-medium text-gray-700 mb-1">
             Número de Recibo
           </label>
           <input
             type="text"
+            id="payment-receipt-number"
             value={receiptNumber}
             onChange={(e) => setReceiptNumber(e.target.value)}
             placeholder="Ej: REC-001"
@@ -163,10 +166,11 @@ export const PaymentForm: FC<PaymentFormProps> = ({
 
         {/* Notas */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="payment-notes" className="block text-sm font-medium text-gray-700 mb-1">
             Notas
           </label>
           <textarea
+            id="payment-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Observaciones del pago..."
