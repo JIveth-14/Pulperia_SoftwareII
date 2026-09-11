@@ -36,8 +36,27 @@ jobs:
         run: npm run lint || true
 
       - name: Run tests with coverage
-        run: npm test -- --coverage
+        run: |
+          set -o pipefail
+          npm test -- --coverage --forceExit --detectOpenHandles 2>&1 | tee test-output.log
         continue-on-error: false
+
+      - name: Check test output
+        run: |
+          echo "Test output:"
+          cat test-output.log
+          echo ""
+          echo "Coverage directory contents:"
+          ls -la coverage/ || echo "Coverage directory not found"
+          echo ""
+          echo "Coverage summary:"
+          cat coverage/coverage-summary.json || echo "Coverage summary not found"
+        if: always()
+
+      - name: Validate lcov coverage data
+        run: |
+          test -f coverage/lcov.info
+          grep -Eq '^DA:[0-9]+,[1-9][0-9]*$' coverage/lcov.info
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -61,10 +80,13 @@ jobs:
         run: |
           echo "📊 Coverage Report Summary:"
           if [ -f coverage/coverage-summary.json ]; then
-            cat coverage/coverage-summary.json | grep -o '"lines":[^}]*' || echo "Coverage data available"
+            cat coverage/coverage-summary.json
           else
-            echo "✅ Tests completed successfully"
+            echo "⚠️ Coverage summary not found - tests may not have run"
           fi
+          echo ""
+          echo "📁 Coverage files:"
+          ls -la coverage/ || echo "No coverage directory"
         if: always()
 
   sonarcloud:
@@ -89,7 +111,7 @@ jobs:
         run: npm ci
 
       - name: Run tests with coverage
-        run: npm test -- --coverage
+        run: npm test -- --coverage --forceExit --detectOpenHandles
         continue-on-error: true
 
       - name: SonarCloud Scan
