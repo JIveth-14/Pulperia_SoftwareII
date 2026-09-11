@@ -30,15 +30,25 @@ jest.mock('@/lib/supabase/env', () => ({
 import { POST } from './route'
 
 describe('POST /api/auth/login', () => {
-  afterEach(() => {
-    jest.restoreAllMocks()
-  })
+  let consoleLogSpy: jest.SpyInstance
+  let consoleErrorSpy: jest.SpyInstance
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockSignInWithPassword.mockReset()
+    mockCreateServerClient.mockReset()
+    mockCookies.mockReset()
+    mockGetSupabaseEnv.mockReset()
+    mockGetAll.mockReset()
+    mockJson.mockReset()
+    mockSet.mockReset()
+    mockJson.mockImplementation((body: unknown, init?: { status?: number }) => ({
+      status: init?.status ?? 200,
+      json: async () => body,
+    }))
 
-    jest.spyOn(console, 'log').mockImplementation(() => undefined)
-    jest.spyOn(console, 'error').mockImplementation(() => undefined)
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined)
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
 
     mockGetAll.mockReturnValue([])
     mockSet.mockImplementation(() => undefined)
@@ -55,6 +65,11 @@ describe('POST /api/auth/login', () => {
         signInWithPassword: mockSignInWithPassword,
       },
     })
+  })
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore()
+    consoleErrorSpy.mockRestore()
   })
 
   it('returns 200 when authentication succeeds', async () => {
@@ -137,6 +152,26 @@ describe('POST /api/auth/login', () => {
 
     expect(response.status).toBe(500)
     expect(body).toEqual({ error: 'Error interno del servidor: boom' })
+    expect(mockSignInWithPassword).not.toHaveBeenCalled()
+  })
+
+  it('returns 500 when Supabase env resolution throws', async () => {
+    mockGetSupabaseEnv.mockImplementation(() => {
+      throw new Error('missing env')
+    })
+
+    const request = {
+      json: jest.fn().mockResolvedValue({
+        email: 'juan@example.com',
+        password: 'secret123',
+      }),
+    } as never
+
+    const response = await POST(request)
+    const body = await response.json()
+
+    expect(response.status).toBe(500)
+    expect(body).toEqual({ error: 'Error interno del servidor: missing env' })
     expect(mockSignInWithPassword).not.toHaveBeenCalled()
   })
 })
