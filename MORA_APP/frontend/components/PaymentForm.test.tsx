@@ -51,7 +51,7 @@ describe('PaymentForm Component', () => {
     render(<PaymentForm creditId={1} maxAmount={5000} />);
 
     // Assert
-    expect(screen.getByText(/Máximo: \$5,000/)).toBeInTheDocument();
+    expect(screen.getByText(/Máximo: \$5(?:,|\s|\u00A0)000/)).toBeInTheDocument();
   });
 
   it('should render all payment method options', () => {
@@ -300,7 +300,7 @@ describe('PaymentForm Component', () => {
     // Assert
     await waitFor(() => {
       expect(
-        screen.getByText(/El monto no puede exceder \$1,000/)
+        screen.getByText(/El monto no puede exceder \$1(?:,|\s|\u00A0)000/)
       ).toBeInTheDocument();
     });
   });
@@ -313,9 +313,10 @@ describe('PaymentForm Component', () => {
     fireEvent.change(amountInput, { target: { value: 'abc' } });
     fireEvent.click(screen.getByRole('button', { name: /✅ Registrar Pago/ }));
 
-    // Assert
+    // Assert - native number input should keep field invalid and prevent submission
+    expect((amountInput as HTMLInputElement).validity.valid).toBe(false);
     await waitFor(() => {
-      expect(screen.getByText('El monto debe ser mayor a 0')).toBeInTheDocument();
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 

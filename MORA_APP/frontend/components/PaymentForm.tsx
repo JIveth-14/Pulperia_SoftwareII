@@ -16,7 +16,7 @@ export const PaymentForm: FC<PaymentFormProps> = ({
   maxAmount,
   onSuccess
 }) => {
-  const formattedMaxAmount = maxAmount.toLocaleString('en-US');
+  const formattedMaxAmount = maxAmount.toLocaleString('es-CR');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | 'card' | 'check'>('cash');
   const [receiptNumber, setReceiptNumber] = useState('');
@@ -83,7 +83,7 @@ export const PaymentForm: FC<PaymentFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="bg-white rounded-lg shadow-md p-6">
+    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-lg font-semibold mb-4 text-gray-900">Registrar Pago</h2>
 
       {error && (

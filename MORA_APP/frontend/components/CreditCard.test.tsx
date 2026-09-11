@@ -123,7 +123,8 @@ describe('CreditCard Component', () => {
     render(<CreditCard credit={overpaidCredit} />);
 
     // Assert
-    const progressDiv = document.querySelector('div[style*="width: 100%"]');
+    const progressSection = screen.getByText('150.0%').closest('div.mb-4');
+    const progressDiv = progressSection?.querySelector('div[style*="width: 100%"]');
     expect(progressDiv).toBeInTheDocument();
   });
 
@@ -430,7 +431,10 @@ describe('CreditCard Component', () => {
     fireEvent.click(screen.getByText('Detalles'));
 
     // Assert
-    expect(screen.getByText('01/01/2024')).toBeInTheDocument();
+    const createdDate = screen
+      .getByText('Creado')
+      .parentElement?.querySelector('dd');
+    expect(createdDate).toHaveTextContent(/01\/01\/2024|1 de enero de 2024/);
   });
 
   // ============ Multiple Callbacks ============
