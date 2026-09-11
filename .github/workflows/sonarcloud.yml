@@ -34,7 +34,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Run tests with coverage
-        run: npm test -- --coverage --watchAll=false --passWithNoTests
+        run: npm test -- --coverage --watchAll=false
         env:
           NODE_ENV: test
 
