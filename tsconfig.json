@@ -15,6 +15,10 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
+      "@/frontend/*": ["./MORA_APP/frontend/*"],
+      "@/middleware/*": ["./MORA_APP/backend/middleware/*"],
+      "@/services/*": ["./MORA_APP/backend/services/*"],
+      "@/api/*": ["./MORA_APP/backend/api/*"],
       "@/*": ["./src/*"]
     }
   },
