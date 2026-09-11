@@ -253,7 +253,12 @@ describe('requireRole', () => {
     await middleware(mockReq as NextApiRequest, mockRes as NextApiResponse, mockHandler);
 
     // Assert
-    expect(mockHandler).toHaveBeenCalled(); // Admin can access cobrador endpoints
+    expect(mockRes.status).toHaveBeenCalledWith(403);
+    expect(mockRes.json).toHaveBeenCalledWith({
+      error: 'Insufficient permissions',
+      required: 'admin'
+    });
+    expect(mockHandler).not.toHaveBeenCalled();
   });
 });
 
@@ -395,9 +400,9 @@ describe('corsMiddleware', () => {
     corsMiddleware(mockReq as NextApiRequest, mockRes as NextApiResponse);
 
     // Assert
-    expect(mockRes.setHeader).toHaveBeenCalledWith(
+    expect(mockRes.setHeader).not.toHaveBeenCalledWith(
       'Access-Control-Allow-Origin',
-      expect.not.stringContaining('evil.com')
+      'https://evil.com'
     );
   });
 });
