@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "src/app", "src/lib", "src/types", "src/repositories", "src/modules/*/services", "src/modules/*/types", "src/utils/*.ts", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "src/app", "src/lib", "src/types", "src/repositories", "src/utils/*.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules", "legacy", "**/__tests__/**", "**/*.test.ts", "**/*.spec.ts"]
 }

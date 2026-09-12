@@ -80,7 +80,7 @@ describe('POST /api/auth/login', () => {
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(body).toEqual({ data })
+    expect(body).toEqual({ ok: true })
     expect(mockSignInWithPassword).toHaveBeenCalledWith(credentials)
     expect(mockCreateServerClient).toHaveBeenCalledWith(
       'https://example.supabase.co',
@@ -124,7 +124,7 @@ describe('POST /api/auth/login', () => {
     const body = await response.json()
 
     expect(response.status).toBe(400)
-    expect(body).toEqual({ error: 'Invalid login credentials' })
+    expect(body).toEqual({ error: 'Credenciales invalidas' })
   })
 
   it('returns 500 when request processing throws', async () => {
@@ -136,7 +136,7 @@ describe('POST /api/auth/login', () => {
     const body = await response.json()
 
     expect(response.status).toBe(500)
-    expect(body).toEqual({ error: 'Error interno del servidor: boom' })
+    expect(body).toEqual({ error: 'Error interno del servidor' })
     expect(mockSignInWithPassword).not.toHaveBeenCalled()
   })
 })

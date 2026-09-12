@@ -47,17 +47,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js').then(
-                  (registration) => {
-                    console.log('✅ Service Worker registrado:', registration);
-                    console.log('📍 Scope:', registration.scope);
-                  },
-                  (error) => {
-                    console.warn('⚠️ Fallo al registrar Service Worker:', error);
-                  }
-                );
-              } else {
-                console.warn('⚠️ Service Worker no soportado en este navegador');
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
               }
             `,
           }}

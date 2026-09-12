@@ -15,8 +15,6 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    console.log('[login] valores de los inputs:', { email, password });
-
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
