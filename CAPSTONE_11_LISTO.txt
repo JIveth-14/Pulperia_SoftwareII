@@ -1,0 +1,48 @@
+================================================================================
+⬇️ COPIA ESTO DIRECTAMENTE AL FORMULARIO DEL CAPSTONE - SECCIÓN 11
+================================================================================
+
+Usuario demo: demo@pulperia.test
+Contraseña demo: DemoPass123!
+
+Paso 1 - URL: http://localhost:3000/dashboard
+Paso 2 - URL: http://localhost:3000/productos
+Paso 3 - URL: http://localhost:3000/clientes
+Paso 4 - URL: http://localhost:3000/ventas
+
+El guion: qué hace el profesor en cada paso y qué debería ver:
+
+**Paso 1: Login y Dashboard**
+El profesor abre http://localhost:3000, ingresa email "demo@pulperia.test" y contraseña "DemoPass123!", luego hace clic en "Iniciar sesión". Debería ver redirección al dashboard con navbar, resumen de ventas del día, clientes activos, productos con bajo stock, y email confirmado en la esquina superior derecha.
+
+**Paso 2: Gestión de Productos**
+El profesor hace clic en "Productos". Debería ver lista de 10 productos demo: Arroz ($1.50), Azúcar ($2.00), Huevo docena ($3.50), Aceite vegetal ($5.00), Leche ($2.50), Pan ($0.75), Frijoles ($1.25), Atún ($2.00), Café ($4.50), Sal ($0.50). Para cada producto: nombre, precio, stock actual, stock mínimo, indicador visual de bajo stock en rojo, botones para editar/eliminar, opción de agregar nuevo producto.
+
+**Paso 3: Gestión de Clientes**
+El profesor hace clic en "Clientes". Debería ver lista de 4 clientes: Juan García López, María Rodríguez Sánchez, Carlos Antonio Flores, Ana María Pérez. Para cada cliente: nombre, teléfono, dirección, saldo pendiente en rojo si hay deuda. Al seleccionar un cliente, ve detalles completos, historial de créditos (fiados), estado (pendiente/parcial/pagado), historial de pagos realizados, opción para registrar nuevo pago.
+
+**Paso 4: Registro de Ventas**
+El profesor hace clic en "Ventas". Debería ver tabla con 3 ventas demo: ID, cliente, fecha, total, tipo de pago (contado/fiado). Al seleccionar una venta, ve desglose completo: productos comprados con cantidades, precio unitario, subtotales, total final, método de pago usado, fecha y hora exacta, quién registró la venta. La app valida que no haya datos inválidos (cantidades negativas, stock insuficiente, montos cero).
+
+================================================================================
+SETUP PREVIO (EL PROFESOR NO VE ESTO, TÚ LO HACES ANTES):
+
+1. Crear usuario en Supabase:
+   - Dashboard: https://app.supabase.com → proyecto yhxmbkojqqffwxrwgdzq
+   - Auth → Users → Add user
+   - Email: demo@pulperia.test
+   - Password: DemoPass123!
+   - Save
+
+2. Ejecutar script SQL con datos demo:
+   - SQL Editor → New query
+   - Copiar contenido: supabase/demo-setup.sql
+   - Run
+   - Verificar resultado: cliente_count: 4, producto_count: 10, etc.
+
+3. Ejecutar localmente:
+   npm install
+   npm run dev
+   App en http://localhost:3000
+
+================================================================================

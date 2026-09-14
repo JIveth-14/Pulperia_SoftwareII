@@ -1,63 +1,61 @@
-import { type NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { getSupabaseEnv } from '@/lib/supabase/env';
+import { createServerClient } from '@supabase/ssr'
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { getSupabaseEnv } from '@/lib/supabase/env'
 
+/**
+ * Middleware para validar autenticación en rutas protegidas
+ * Redirige a login si no hay sesión válida
+ */
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+  try {
+    const cookieStore = await cookies()
+    const { url, anonKey } = getSupabaseEnv()
 
-  const { url: supabaseUrl, anonKey } = getSupabaseEnv();
-  const supabase = createServerClient(
-    supabaseUrl,
-    anonKey,
-    {
+    const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll() {
-          return request.cookies.getAll();
+          return cookieStore.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
         },
       },
+    })
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Proteger rutas de (app) - requieren autenticación
+    if (request.nextUrl.pathname.startsWith('/(app)') || request.nextUrl.pathname.startsWith('/app/')) {
+      if (!user) {
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
     }
-  );
 
-  // IMPORTANTE: getUser() refresca el token de sesión si expiró.
-  const { data: { user } } = await supabase.auth.getUser();
+    // Redirigir a dashboard si usuario intenta ir a login ya autenticado
+    if (request.nextUrl.pathname === '/login' && user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
 
-  // Rutas públicas
-  const publicRoutes = ['/login', '/'];
-
-  // Si no hay sesión y no está en ruta pública → redirigir a login
-  if (!user && !publicRoutes.includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.next()
+  } catch {
+    // Si hay error de autenticación, redirigir a login
+    if (request.nextUrl.pathname.startsWith('/(app)') || request.nextUrl.pathname.startsWith('/app/')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    return NextResponse.next()
   }
-
-  // Si hay sesión y está en /login → redirigir a dashboard
-  if (user && request.nextUrl.pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  return response;
 }
 
 export const config = {
   matcher: [
-    // Excluye /api (el login es un POST que no debe redirigirse),
-    // assets estáticos y archivos con extensión.
-    '/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/(app)/:path*',
+    '/app/:path*',
+    '/dashboard/:path*',
+    '/clientes/:path*',
+    '/productos/:path*',
+    '/ventas/:path*',
   ],
-};
+}
