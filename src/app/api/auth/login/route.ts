@@ -6,7 +6,7 @@ import { validateEmail, validatePassword, ValidationError } from '@/lib/security
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
-  const clientIp = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  const clientIp = (request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown') as string
 
   try {
     // Validar Content-Type
@@ -60,9 +60,9 @@ export async function POST(request: NextRequest) {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
+            cookieStore.set(name, value, options || {})
           })
         },
       },

@@ -99,7 +99,7 @@ export default async function ClienteDetailPage({
                       Deuda #{fiado.id}
                     </p>
                     <p className="text-xs text-text-secondary">
-                      {new Date(fiado.fecha).toLocaleDateString()}
+                      {fiado.fecha ? new Date(fiado.fecha).toLocaleDateString() : 'Sin fecha'}
                     </p>
                   </div>
                   <div className="text-right">
@@ -123,7 +123,7 @@ export default async function ClienteDetailPage({
               {pagos.slice(0, 10).map((pago) => (
                 <div key={pago.id} className="flex items-center justify-between border-b border-gray-100 pb-2 last:border-0">
                   <p className="text-sm text-text-secondary">
-                    {new Date(pago.fecha_pago).toLocaleDateString()}
+                    {pago.fecha_pago ? new Date(pago.fecha_pago).toLocaleDateString() : 'Sin fecha'}
                   </p>
                   <p className="text-sm font-semibold text-secondary">
                     +${Number(pago.monto_pagado).toFixed(2)}
