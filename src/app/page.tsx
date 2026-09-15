@@ -6,12 +6,20 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
         <div className="text-2xl font-bold text-indigo-600">Pulpería</div>
-        <Link
-          href="/login"
-          className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-        >
-          Inicia sesión
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/demo/login"
+            className="px-6 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition"
+          >
+            Ver demo
+          </Link>
+          <Link
+            href="/login"
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Inicia sesión
+          </Link>
+        </div>
       </nav>
 
       {/* Hero Section */}

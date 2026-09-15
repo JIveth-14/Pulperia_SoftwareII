@@ -97,6 +97,15 @@ export default function LoginPage() {
         <div className="text-center text-xs text-gray-500">
           Usa tus credenciales de Supabase
         </div>
+
+        <div className="text-center">
+          <a
+            href="/demo/login"
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            ¿Solo quieres explorar? Prueba la demo →
+          </a>
+        </div>
       </div>
     </main>
   );
