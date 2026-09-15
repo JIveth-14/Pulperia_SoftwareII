@@ -1,63 +1,109 @@
-import { type NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { getSupabaseEnv } from '@/lib/supabase/env';
+import { createServerClient } from '@supabase/ssr'
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { getSupabaseEnv } from '@/lib/supabase/env'
+import { DEMO_COOKIE, isDemoPath } from '@/lib/demo/demo-config'
 
+/**
+ * Middleware.
+ *
+ * 1) MODO DEMO: si la ruta empieza por /demo, se maneja la sesión demo
+ *    (cookie con expiración de 30 min) y se SALTA la autenticación real.
+ *    Es el equivalente Next.js al `req.isDemoMode = true` de la spec original.
+ * 2) Rutas protegidas: valida sesión Supabase y redirige a /login si falta.
+ */
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+  const { pathname } = request.nextUrl
 
-  const { url: supabaseUrl, anonKey } = getSupabaseEnv();
-  const supabase = createServerClient(
-    supabaseUrl,
-    anonKey,
-    {
+  // ==========================================
+  // 1) MODO DEMO
+  // ==========================================
+  if (isDemoPath(pathname)) {
+    // Rutas demo públicas: login, procesado del login, expiración y salida.
+    // No requieren sesión (de lo contrario no se podría entrar nunca).
+    const publicDemo =
+      pathname.startsWith('/demo/login') ||
+      pathname.startsWith('/demo/entrar') ||
+      pathname.startsWith('/demo/expirado') ||
+      pathname.startsWith('/demo/salir')
+
+    if (publicDemo) {
+      return NextResponse.next()
+    }
+
+    // El resto de /demo requiere una sesión demo válida (creada en /demo/entrar
+    // tras validar las credenciales estáticas demo@app.com / Demo2026!).
+    const existing = request.cookies.get(DEMO_COOKIE)?.value
+    const expiresAt = existing ? Number(existing) : NaN
+    const valid = Number.isFinite(expiresAt) && Date.now() <= expiresAt
+
+    if (!valid) {
+      // Sin sesión -> a login demo. Con sesión expirada -> a /demo/expirado.
+      const res = NextResponse.redirect(
+        new URL(existing ? '/demo/expirado' : '/demo/login', request.url)
+      )
+      if (existing) res.cookies.delete({ name: DEMO_COOKIE, path: '/demo' })
+      return res
+    }
+
+    const res = NextResponse.next()
+    res.headers.set('x-demo-mode', '1')
+    return res
+  }
+
+  // ==========================================
+  // 2) AUTENTICACIÓN REAL (Supabase)
+  // ==========================================
+  try {
+    const cookieStore = await cookies()
+    const { url, anonKey } = getSupabaseEnv()
+
+    const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll() {
-          return request.cookies.getAll();
+          return cookieStore.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
         },
       },
+    })
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Proteger rutas de (app) - requieren autenticación
+    if (request.nextUrl.pathname.startsWith('/(app)') || request.nextUrl.pathname.startsWith('/app/')) {
+      if (!user) {
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
     }
-  );
 
-  // IMPORTANTE: getUser() refresca el token de sesión si expiró.
-  const { data: { user } } = await supabase.auth.getUser();
+    // Redirigir a dashboard si usuario intenta ir a login ya autenticado
+    if (request.nextUrl.pathname === '/login' && user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
 
-  // Rutas públicas
-  const publicRoutes = ['/login', '/'];
-
-  // Si no hay sesión y no está en ruta pública → redirigir a login
-  if (!user && !publicRoutes.includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.next()
+  } catch {
+    // Si hay error de autenticación, redirigir a login
+    if (request.nextUrl.pathname.startsWith('/(app)') || request.nextUrl.pathname.startsWith('/app/')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    return NextResponse.next()
   }
-
-  // Si hay sesión y está en /login → redirigir a dashboard
-  if (user && request.nextUrl.pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  return response;
 }
 
 export const config = {
   matcher: [
-    // Excluye /api (el login es un POST que no debe redirigirse),
-    // assets estáticos y archivos con extensión.
-    '/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/demo/:path*',
+    '/(app)/:path*',
+    '/app/:path*',
+    '/dashboard/:path*',
+    '/clientes/:path*',
+    '/productos/:path*',
+    '/ventas/:path*',
+    '/login',
   ],
-};
+}

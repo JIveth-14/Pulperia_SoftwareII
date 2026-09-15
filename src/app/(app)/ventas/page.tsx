@@ -50,7 +50,7 @@ export default async function VentasPage() {
                         Venta #{venta.id}
                       </h3>
                       <div className="mt-2 flex gap-4 text-sm text-text-secondary">
-                        <span>📅 {new Date(venta.fecha).toLocaleDateString()}</span>
+                        <span>📅 {venta.fecha ? new Date(venta.fecha).toLocaleDateString() : 'Sin fecha'}</span>
                         <span>💳 {venta.tipo_pago === 'contado' ? 'Contado' : 'Fiado'}</span>
                       </div>
                     </div>

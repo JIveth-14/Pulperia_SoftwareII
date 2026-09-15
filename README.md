@@ -8,6 +8,21 @@ Una aplicación web moderna y escalable para gestionar operaciones de una pulper
 
 ---
 
+## 🔴 Demo en vivo
+
+Prueba la app sin crear cuenta ni tocar datos reales:
+
+- **Demo:** `https://<tu-app>.vercel.app/demo`
+- **App real:** `https://<tu-app>.vercel.app/`
+
+La demo entra **sin login**, es de **solo lectura**, usa **datos ficticios en
+memoria** (no toca Supabase) y la sesión dura **30 minutos**. Es la misma app,
+el mismo build y el mismo deploy en Vercel — solo cambia la ruta.
+
+Guía completa: [`public/DEMO_README.md`](public/DEMO_README.md).
+
+---
+
 ## 🎯 Características Principales
 
 - ✅ **Gestión de Inventario** — Productos, stock, alertas de bajo stock
