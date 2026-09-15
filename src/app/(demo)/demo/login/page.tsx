@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { DEMO_CREDENTIALS, DEMO_SESSION_MINUTES } from '@/lib/demo/demo-config';
 
 /**
@@ -77,9 +78,9 @@ export default async function DemoLoginPage({
         </div>
 
         <div className="text-center">
-          <a href="/" className="text-sm text-gray-500 hover:text-gray-700">
+          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
             Volver al inicio
-          </a>
+          </Link>
         </div>
       </div>
     </main>
