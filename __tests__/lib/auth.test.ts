@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { middleware, config } from '@/middleware'
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
 jest.mock('@supabase/ssr', () => ({
   createServerClient: jest.fn(),
@@ -13,20 +14,26 @@ jest.mock('@/lib/supabase/env', () => ({
 
 jest.mock('next/server', () => ({
   NextResponse: {
-    next: jest.fn(({ request }) => ({
+    next: jest.fn(() => ({
       type: 'next',
-      request,
+      headers: { set: jest.fn() },
       cookies: { set: jest.fn() },
     })),
     redirect: jest.fn((url: URL) => ({
       type: 'redirect',
       url: String(url),
+      cookies: { delete: jest.fn() },
     })),
   },
 }))
 
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(),
+}))
+
 const mockCreateServerClient = createServerClient as jest.MockedFunction<typeof createServerClient>
 const mockGetSupabaseEnv = getSupabaseEnv as jest.MockedFunction<typeof getSupabaseEnv>
+const mockCookies = cookies as jest.MockedFunction<typeof cookies>
 const mockNextResponse = NextResponse as unknown as {
   next: jest.Mock
   redirect: jest.Mock
@@ -39,13 +46,18 @@ describe('next auth middleware', () => {
       url: 'https://demo.supabase.co',
       anonKey: 'anon-key',
     } as ReturnType<typeof getSupabaseEnv>)
+    mockCookies.mockResolvedValue({
+      getAll: jest.fn().mockReturnValue([{ name: 'session', value: 'abc' }]),
+      set: jest.fn(),
+    } as any)
   })
 
-  const createRequest = (pathname: string) =>
+  const createRequest = (pathname: string, demoCookie?: string) =>
     ({
       headers: new Headers(),
       cookies: {
         getAll: jest.fn().mockReturnValue([{ name: 'session', value: 'abc' }]),
+        get: jest.fn().mockReturnValue(demoCookie ? { value: demoCookie } : undefined),
         set: jest.fn(),
       },
       nextUrl: { pathname },
@@ -77,11 +89,11 @@ describe('next auth middleware', () => {
     } as any)
 
     // Act
-    const response = await middleware(createRequest('/dashboard'))
+    const response = await middleware(createRequest('/app/dashboard'))
 
     // Assert
     expect(mockNextResponse.redirect).toHaveBeenCalled()
-    expect(response).toEqual({
+    expect(response).toMatchObject({
       type: 'redirect',
       url: 'https://pulperia.test/login',
     })
@@ -99,7 +111,7 @@ describe('next auth middleware', () => {
     const response = await middleware(createRequest('/login'))
 
     // Assert
-    expect(response).toEqual({
+    expect(response).toMatchObject({
       type: 'redirect',
       url: 'https://pulperia.test/dashboard',
     })
@@ -114,7 +126,7 @@ describe('next auth middleware', () => {
     } as any)
 
     // Act
-    const response = await middleware(createRequest('/clientes'))
+    const response = await middleware(createRequest('/app/clientes'))
 
     // Assert
     expect(response).toMatchObject({ type: 'next' })
@@ -123,7 +135,7 @@ describe('next auth middleware', () => {
 
   it('wires cookie synchronization through the Supabase client adapter', async () => {
     // Arrange
-    const request = createRequest('/dashboard')
+    const request = createRequest('/app/dashboard')
     mockCreateServerClient.mockReturnValue({
       auth: {
         getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } }),
@@ -137,14 +149,22 @@ describe('next auth middleware', () => {
     options.cookies.setAll([{ name: 'sb', value: 'token', options: { secure: true } }])
 
     // Assert
-    expect(request.cookies.getAll).toHaveBeenCalled()
-    expect(request.cookies.set).toHaveBeenCalledWith('sb', 'token')
-    expect(mockNextResponse.next).toHaveBeenCalledTimes(2)
+    const cookieStore = await mockCookies.mock.results[0].value
+    expect(cookieStore.getAll).toHaveBeenCalled()
+    expect(cookieStore.set).toHaveBeenCalledWith('sb', 'token', { secure: true })
+    expect(mockNextResponse.next).toHaveBeenCalledTimes(1)
   })
 
   it('keeps the public matcher configuration intact', () => {
     expect(config.matcher).toEqual([
-      '/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+      '/demo/:path*',
+      '/(app)/:path*',
+      '/app/:path*',
+      '/dashboard/:path*',
+      '/clientes/:path*',
+      '/productos/:path*',
+      '/ventas/:path*',
+      '/login',
     ])
   })
 })

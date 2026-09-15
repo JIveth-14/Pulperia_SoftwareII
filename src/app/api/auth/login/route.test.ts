@@ -30,6 +30,17 @@ jest.mock('@/lib/supabase/env', () => ({
 import { POST } from './route'
 
 describe('POST /api/auth/login', () => {
+  const createRequest = (body: unknown, contentType = 'application/json') =>
+    ({
+      headers: {
+        get: jest.fn((name: string) => {
+          if (name === 'content-type') return contentType
+          return null
+        }),
+      },
+      json: jest.fn().mockResolvedValue(body),
+    } as never)
+
   afterEach(() => {
     jest.restoreAllMocks()
   })
@@ -72,9 +83,7 @@ describe('POST /api/auth/login', () => {
       error: null,
     })
 
-    const request = {
-      json: jest.fn().mockResolvedValue(credentials),
-    } as never
+    const request = createRequest(credentials)
 
     const response = await POST(request)
     const body = await response.json()
@@ -107,36 +116,37 @@ describe('POST /api/auth/login', () => {
     expect(mockSet).toHaveBeenCalledWith('sb-access-token', 'token', { httpOnly: true })
   })
 
-  it('returns 400 when Supabase returns an auth error', async () => {
+  it('returns 401 when Supabase returns an auth error', async () => {
     mockSignInWithPassword.mockResolvedValue({
       data: null,
       error: { message: 'Invalid login credentials', status: 400 },
     })
 
-    const request = {
-      json: jest.fn().mockResolvedValue({
-        email: 'juan@example.com',
-        password: 'wrong-password',
-      }),
-    } as never
+    const request = createRequest({
+      email: 'juan@example.com',
+      password: 'wrong-password',
+    })
 
     const response = await POST(request)
     const body = await response.json()
 
-    expect(response.status).toBe(400)
-    expect(body).toEqual({ error: 'Credenciales invalidas' })
+    expect(response.status).toBe(401)
+    expect(body).toEqual({ error: 'Email o contraseña incorrecta' })
   })
 
-  it('returns 500 when request processing throws', async () => {
+  it('returns 400 when request body parsing fails', async () => {
     const request = {
+      headers: {
+        get: jest.fn((name: string) => (name === 'content-type' ? 'application/json' : null)),
+      },
       json: jest.fn().mockRejectedValue(new Error('boom')),
     } as never
 
     const response = await POST(request)
     const body = await response.json()
 
-    expect(response.status).toBe(500)
-    expect(body).toEqual({ error: 'Error interno del servidor' })
+    expect(response.status).toBe(400)
+    expect(body).toEqual({ error: 'Invalid JSON' })
     expect(mockSignInWithPassword).not.toHaveBeenCalled()
   })
 })
