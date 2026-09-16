@@ -9,7 +9,11 @@ jest.mock('next/link', () => ({
     </a>
   ),
 }))
-jest.mock('next/navigation', () => ({ redirect: jest.fn(), useRouter: () => ({ replace: jest.fn() }) }))
+jest.mock('next/navigation', () => ({
+  redirect: jest.fn(),
+  usePathname: () => '/demo',
+  useRouter: () => ({ replace: jest.fn() }),
+}))
 jest.mock('@/lib/demo/session', () => ({
   getDemoSession: jest.fn().mockResolvedValue({ expiresAt: Date.now() + 60_000, expired: false, remainingMs: 60_000 }),
 }))

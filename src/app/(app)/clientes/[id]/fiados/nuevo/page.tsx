@@ -1,5 +1,8 @@
-import { PageHeader } from '@/components/ui';
-import { parseIdOrNotFound } from '@/lib/params';
+import { Card, PageHeader } from '@/components/ui';
+import { FiadoForm } from '@/components/formularios';
+import { registrarFiado } from '@/actions/clientes';
+import { getRepositories } from '@/repositories/container';
+import { oNotFound, parseIdOrNotFound } from '@/lib/params';
 
 export default async function NuevoFiadoPage({
   params,
@@ -8,18 +11,15 @@ export default async function NuevoFiadoPage({
 }) {
   const { id: rawId } = await params;
   const id = parseIdOrNotFound(rawId);
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`Registrar fiado para cliente #${id}`}
-        backHref={`/clientes/${id}`}
-      />
+  const repos = await getRepositories();
+  const cliente = await oNotFound(repos.clientes.getById(id));
 
-      <div className="rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
-        <p className="text-sm text-text-secondary">
-          Formulario de nuevo fiado (se implementará en próximas fases)
-        </p>
-      </div>
+  return (
+    <div className="mx-auto max-w-xl space-y-6">
+      <PageHeader title="Registrar fiado" description={cliente.nombre} backHref={`/clientes/${id}`} />
+      <Card>
+        <FiadoForm accion={registrarFiado.bind(null, id)} cancelarHref={`/clientes/${id}`} />
+      </Card>
     </div>
   );
 }

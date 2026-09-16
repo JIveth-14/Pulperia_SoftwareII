@@ -1,6 +1,8 @@
 import Link from 'next/link';
-import { PageHeader, buttonClass } from '@/components/ui';
-import { parseIdOrNotFound } from '@/lib/params';
+import { EmptyState, PageHeader, Table, TBody, Td, Th, THead, Tr, buttonClass } from '@/components/ui';
+import { getRepositories } from '@/repositories/container';
+import { oNotFound, parseIdOrNotFound } from '@/lib/params';
+import { formatDateTime, formatMoney } from '@/lib/format';
 
 export default async function HistorialPagosPage({
   params,
@@ -9,23 +11,48 @@ export default async function HistorialPagosPage({
 }) {
   const { id: rawId } = await params;
   const id = parseIdOrNotFound(rawId);
+  const repos = await getRepositories();
+  const [cliente, pagos] = await Promise.all([
+    oNotFound(repos.clientes.getById(id)),
+    repos.pagos.getByCliente(id),
+  ]);
+  const totalPagado = pagos.reduce((sum, p) => sum + Number(p.monto_pagado), 0);
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Historial de pagos - Cliente #${id}`}
+        title="Historial de pagos"
+        description={`${cliente.nombre} · ${pagos.length} pago${pagos.length === 1 ? '' : 's'} · ${formatMoney(totalPagado)} abonados`}
         backHref={`/clientes/${id}`}
         actions={
           <Link href={`/clientes/${id}/pagos/nuevo`} className={buttonClass('primary')}>
-            Nuevo pago
+            Registrar pago
           </Link>
         }
       />
 
-      <div className="rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
-        <p className="text-sm text-text-secondary">
-          Lista de pagos (se implementará en próximas fases)
-        </p>
-      </div>
+      {pagos.length === 0 ? (
+        <EmptyState title="Sin pagos" message="Este cliente todavía no ha hecho abonos." />
+      ) : (
+        <Table>
+          <THead>
+            <Th>Fecha</Th>
+            <Th>Deuda</Th>
+            <Th align="right">Monto</Th>
+          </THead>
+          <TBody>
+            {pagos.map((pago) => (
+              <Tr key={pago.id}>
+                <Td className="whitespace-nowrap text-text">{formatDateTime(pago.fecha_pago)}</Td>
+                <Td className="text-text-secondary">#{pago.fiado_id}</Td>
+                <Td align="right" className="font-medium tabular-nums text-success">
+                  {formatMoney(pago.monto_pagado)}
+                </Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      )}
     </div>
   );
 }

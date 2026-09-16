@@ -1,5 +1,8 @@
-import { PageHeader } from '@/components/ui';
-import { parseIdOrNotFound } from '@/lib/params';
+import { Card, PageHeader } from '@/components/ui';
+import { ClienteForm, EliminarRegistro } from '@/components/formularios';
+import { actualizarCliente, eliminarCliente } from '@/actions/clientes';
+import { getRepositories } from '@/repositories/container';
+import { oNotFound, parseIdOrNotFound } from '@/lib/params';
 
 export default async function EditarClientePage({
   params,
@@ -8,18 +11,24 @@ export default async function EditarClientePage({
 }) {
   const { id: rawId } = await params;
   const id = parseIdOrNotFound(rawId);
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`Editar cliente #${id}`}
-        backHref={`/clientes/${id}`}
-      />
+  const repos = await getRepositories();
+  const cliente = await oNotFound(repos.clientes.getById(id));
 
-      <div className="rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
-        <p className="text-sm text-text-secondary">
-          Formulario de edición (se implementará en próximas fases)
-        </p>
-      </div>
+  return (
+    <div className="mx-auto max-w-xl space-y-6">
+      <PageHeader title="Editar cliente" description={cliente.nombre} backHref={`/clientes/${id}`} />
+      <Card>
+        <ClienteForm
+          accion={actualizarCliente.bind(null, id)}
+          cliente={cliente}
+          cancelarHref={`/clientes/${id}`}
+        />
+      </Card>
+      <EliminarRegistro
+        accion={eliminarCliente.bind(null, id)}
+        entidad="cliente"
+        advertencia="Se borrarán también su historial de fiados y pagos. Solo es posible si no tiene deudas pendientes."
+      />
     </div>
   );
 }

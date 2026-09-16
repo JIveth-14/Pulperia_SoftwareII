@@ -126,3 +126,77 @@ export function validateDireccion(direccion: unknown): string {
 
   return trimmed
 }
+
+/**
+ * Teléfono hondureño o internacional. Devuelve 8 dígitos como `9876-5432`
+ * (formato local) y cualquier otro largo válido solo con dígitos.
+ */
+export function validateTelefono(telefono: unknown): string {
+  const digitos = validatePhoneNumber(telefono)
+  if (digitos.length === 8) return `${digitos.slice(0, 4)}-${digitos.slice(4)}`
+  if (digitos.length === 11 && digitos.startsWith('504')) {
+    return `${digitos.slice(3, 7)}-${digitos.slice(7)}`
+  }
+  return digitos
+}
+
+/** Dirección opcional: vacía → null. */
+export function validateDireccionOpcional(direccion: unknown): string | null {
+  if (direccion === undefined || direccion === null) return null
+  const limpia = validateDireccion(direccion)
+  return limpia.length === 0 ? null : limpia
+}
+
+/** Precio en lempiras: puede ser 0 (regalías), nunca negativo. */
+export function validatePrecio(precio: unknown): number {
+  if (typeof precio === 'string' && precio.trim() === '') {
+    throw new ValidationError('Precio requerido')
+  }
+  const num = typeof precio === 'string' ? Number(precio) : precio
+  if (typeof num !== 'number' || !Number.isFinite(num)) {
+    throw new ValidationError('Precio inválido')
+  }
+  if (num < 0) {
+    throw new ValidationError('El precio no puede ser negativo')
+  }
+  if (num > 999999.99) {
+    throw new ValidationError('Precio demasiado grande')
+  }
+  return Math.round(num * 100) / 100
+}
+
+/** Entero mayor o igual a 0 (stock, stock mínimo). */
+export function validateEnteroNoNegativo(valor: unknown, campo = 'Cantidad'): number {
+  if (typeof valor === 'string' && valor.trim() === '') {
+    throw new ValidationError(`${campo} requerido`)
+  }
+  const num = typeof valor === 'string' ? Number(valor) : valor
+  if (typeof num !== 'number' || !Number.isSafeInteger(num)) {
+    throw new ValidationError(`${campo} debe ser un número entero`)
+  }
+  if (num < 0) {
+    throw new ValidationError(`${campo} no puede ser negativo`)
+  }
+  return num
+}
+
+/**
+ * Valida varios campos a la vez y reúne TODOS los errores (no solo el
+ * primero), para mostrarlos junto a cada input del formulario.
+ */
+export function validarCampos<T extends Record<string, () => unknown>>(
+  reglas: T
+): { valores: { [K in keyof T]: ReturnType<T[K]> }; errores: Partial<Record<keyof T, string>> } {
+  const valores = {} as { [K in keyof T]: ReturnType<T[K]> }
+  const errores: Partial<Record<keyof T, string>> = {}
+
+  for (const campo of Object.keys(reglas) as (keyof T)[]) {
+    try {
+      valores[campo] = reglas[campo]() as ReturnType<T[typeof campo]>
+    } catch (error) {
+      errores[campo] = error instanceof ValidationError ? error.message : 'Valor inválido'
+    }
+  }
+
+  return { valores, errores }
+}

@@ -2,6 +2,7 @@ import type { Cliente, ClienteConSaldo } from '../../types';
 import type { ClienteRepository } from '../ClienteRepository';
 import { DEMO_CLIENTES, DEMO_FIADOS } from '../../lib/demo/demo-data';
 import { DemoReadOnlyError } from './DemoReadOnlyError';
+import { NoEncontradoError } from '../../domain/errors';
 
 /**
  * Implementación en memoria de {@link ClienteRepository} para el modo demo.
@@ -22,7 +23,7 @@ export class InMemoryClienteRepository implements ClienteRepository {
 
   async getById(id: number): Promise<Cliente> {
     const cliente = DEMO_CLIENTES.find((c) => c.id === id);
-    if (!cliente) throw new Error(`Cliente ${id} no encontrado`);
+    if (!cliente) throw new NoEncontradoError('Cliente', id);
     return cliente;
   }
 

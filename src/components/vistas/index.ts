@@ -1,0 +1,11 @@
+export { DashboardView, cargarDashboard } from './DashboardView';
+export type { DatosDashboard } from './DashboardView';
+export { ClientesView } from './ClientesView';
+export { ProductosView } from './ProductosView';
+export { VentasView } from './VentasView';
+export { Accion, AvisoSoloLectura, EnlaceTarjeta } from './Acciones';
+export { rutaBase, esDemo } from './modo';
+export type { ModoDatos } from './modo';
+export { Buscador } from './Buscador';
+export { BadgeTipoPago, BadgeEstadoFiado } from './etiquetas';
+export { ClienteDetalleView } from './ClienteDetalleView';

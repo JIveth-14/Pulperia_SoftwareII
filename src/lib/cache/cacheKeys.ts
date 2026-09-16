@@ -45,18 +45,19 @@ export const CACHE_KEYS = {
 };
 
 /**
- * Cache invalidation patterns.
- * When a mutation happens, we need to invalidate related caches.
+ * Claves fijas que invalida cada tipo de mutación. Las claves que dependen de
+ * un id (cliente, producto, fiado) las agrega `clavesAInvalidar()` en
+ * `invalidation.ts`, que es el único punto que decide qué se borra.
  */
 export const CACHE_INVALIDATION_PATTERNS = {
-  // When a cliente is created/updated/deleted
+  // Cliente creado/actualizado/eliminado
   CLIENTE_MUTATION: [
     CACHE_KEYS.CLIENTS_LIST,
     CACHE_KEYS.CLIENTS_WITH_BALANCE,
     CACHE_KEYS.DASHBOARD_SUMMARY,
   ],
 
-  // When a producto is created/updated/deleted
+  // Producto creado/actualizado/eliminado
   PRODUCTO_MUTATION: [
     CACHE_KEYS.PRODUCTS_LIST,
     CACHE_KEYS.PRODUCTS_LOW_STOCK,
@@ -64,25 +65,27 @@ export const CACHE_INVALIDATION_PATTERNS = {
     CACHE_KEYS.DASHBOARD_SUMMARY,
   ],
 
-  // When a venta is created
+  // Venta registrada (descuenta stock; si es fiado, crea deuda)
   VENTA_MUTATION: [
     CACHE_KEYS.VENTAS_LIST,
     CACHE_KEYS.VENTAS_TODAY,
     CACHE_KEYS.DASHBOARD_SUMMARY,
     CACHE_KEYS.DASHBOARD_STATS,
-    CACHE_KEYS.PRODUCTS_LIST, // stock changed
+    CACHE_KEYS.PRODUCTS_LIST,
     CACHE_KEYS.PRODUCTS_LOW_STOCK,
+    CACHE_KEYS.PRODUCTS_BY_STOCK,
   ],
 
-  // When a fiado is created
+  // Fiado creado
   FIADO_MUTATION: [
     CACHE_KEYS.FIADOS_LIST,
     CACHE_KEYS.FIADOS_PENDING,
+    CACHE_KEYS.FIADOS_PARTIAL,
     CACHE_KEYS.CLIENTS_WITH_BALANCE,
     CACHE_KEYS.DASHBOARD_SUMMARY,
   ],
 
-  // When a pago is made
+  // Pago registrado (cambia saldo y estado del fiado)
   PAGO_MUTATION: [
     CACHE_KEYS.PAGOS_LIST,
     CACHE_KEYS.FIADOS_LIST,
@@ -93,9 +96,11 @@ export const CACHE_INVALIDATION_PATTERNS = {
   ],
 };
 
+export type TipoMutacion = keyof typeof CACHE_INVALIDATION_PATTERNS;
+
 /**
  * Helper function to invalidate all keys related to a pattern
  */
-export function getInvalidationKeysForMutation(mutationType: keyof typeof CACHE_INVALIDATION_PATTERNS): string[] {
+export function getInvalidationKeysForMutation(mutationType: TipoMutacion): string[] {
   return CACHE_INVALIDATION_PATTERNS[mutationType] || [];
 }

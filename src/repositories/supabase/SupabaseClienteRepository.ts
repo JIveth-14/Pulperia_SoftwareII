@@ -1,57 +1,46 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Cliente, ClienteConSaldo, NuevoCliente } from '../../types';
 import type { ClienteRepository } from '../ClienteRepository';
-import { getCacheOrFetch, deleteCacheKeys, getCacheTTL, CACHE_KEYS } from '../../lib/cache';
+import { lanzarSiError } from './errores';
 
+/**
+ * Acceso a `clientes` en Supabase. Sin caché: la aplica
+ * `CachedClienteRepository` (Decorator) desde el contenedor.
+ */
 export class SupabaseClienteRepository implements ClienteRepository {
   constructor(private supabase: SupabaseClient) {}
 
   async getAll(): Promise<Cliente[]> {
-    const ttl = getCacheTTL('CLIENTS');
-    return getCacheOrFetch(CACHE_KEYS.CLIENTS_LIST, async () => {
-      const { data, error } = await this.supabase
-        .from('clientes')
-        .select('*')
-        .order('nombre');
-      if (error) throw new Error(error.message);
-      return data as Cliente[];
-    }, ttl);
+    const { data, error } = await this.supabase
+      .from('clientes')
+      .select('*')
+      .order('nombre');
+    lanzarSiError(error, { entidad: 'Cliente' });
+    return data as Cliente[];
   }
 
   async getById(id: number): Promise<Cliente> {
-    const ttl = getCacheTTL('CLIENTS');
-    return getCacheOrFetch(CACHE_KEYS.CLIENT(id), async () => {
-      const { data, error } = await this.supabase
-        .from('clientes')
-        .select('*')
-        .eq('id', id)
-        .single();
-      if (error) throw new Error(error.message);
-      return data as Cliente;
-    }, ttl);
+    const { data, error } = await this.supabase
+      .from('clientes')
+      .select('*')
+      .eq('id', id)
+      .single();
+    lanzarSiError(error, { entidad: 'Cliente', id });
+    return data as Cliente;
   }
 
   async getConSaldo(): Promise<ClienteConSaldo[]> {
-    const ttl = getCacheTTL('CLIENTS');
-    return getCacheOrFetch(CACHE_KEYS.CLIENTS_WITH_BALANCE, async () => {
-      const { data, error } = await this.supabase
-        .from('clientes')
-        .select('*, fiados(saldo_pendiente)')
-        .order('nombre');
-      if (error) throw new Error(error.message);
+    const { data, error } = await this.supabase
+      .from('clientes')
+      .select('*, fiados(saldo_pendiente)')
+      .order('nombre');
+    lanzarSiError(error, { entidad: 'Cliente' });
 
-      return (data as any[]).map((c) => ({
-        id: c.id,
-        nombre: c.nombre,
-        telefono: c.telefono,
-        direccion: c.direccion,
-        created_at: c.created_at,
-        saldo: (c.fiados as { saldo_pendiente: number }[]).reduce(
-          (sum, f) => sum + Number(f.saldo_pendiente),
-          0
-        ),
-      }));
-    }, ttl);
+    type Fila = Cliente & { fiados: { saldo_pendiente: number | string }[] | null };
+    return (data as Fila[]).map(({ fiados, ...cliente }) => ({
+      ...cliente,
+      saldo: (fiados ?? []).reduce((sum, f) => sum + Number(f.saldo_pendiente), 0),
+    }));
   }
 
   async buscar(nombre: string): Promise<Cliente[]> {
@@ -60,7 +49,7 @@ export class SupabaseClienteRepository implements ClienteRepository {
       .select('*')
       .ilike('nombre', `%${nombre}%`)
       .order('nombre');
-    if (error) throw new Error(error.message);
+    lanzarSiError(error, { entidad: 'Cliente' });
     return data as Cliente[];
   }
 
@@ -70,11 +59,7 @@ export class SupabaseClienteRepository implements ClienteRepository {
       .insert(nuevo)
       .select()
       .single();
-    if (error) throw new Error(error.message);
-
-    // Invalidate related caches
-    await this.invalidateClientCaches();
-
+    lanzarSiError(error, { entidad: 'Cliente' });
     return data as Cliente;
   }
 
@@ -85,38 +70,12 @@ export class SupabaseClienteRepository implements ClienteRepository {
       .eq('id', id)
       .select()
       .single();
-    if (error) throw new Error(error.message);
-
-    // Invalidate related caches
-    await this.invalidateClientCaches(id);
-
+    lanzarSiError(error, { entidad: 'Cliente', id });
     return data as Cliente;
   }
 
   async delete(id: number): Promise<void> {
     const { error } = await this.supabase.from('clientes').delete().eq('id', id);
-    if (error) throw new Error(error.message);
-
-    // Invalidate related caches
-    await this.invalidateClientCaches(id);
-  }
-
-  private async invalidateClientCaches(id?: number): Promise<void> {
-    // buscar() no se cachea, así que no hay claves de búsqueda que limpiar.
-    const keysToInvalidate = [
-      CACHE_KEYS.CLIENTS_LIST,
-      CACHE_KEYS.CLIENTS_WITH_BALANCE,
-      CACHE_KEYS.DASHBOARD_SUMMARY,
-    ];
-
-    if (id) {
-      keysToInvalidate.push(
-        CACHE_KEYS.CLIENT(id),
-        CACHE_KEYS.FIADOS_BY_CLIENT(id),
-        CACHE_KEYS.PAGOS_BY_CLIENT(id)
-      );
-    }
-
-    await deleteCacheKeys(keysToInvalidate);
+    lanzarSiError(error, { entidad: 'Cliente', id });
   }
 }

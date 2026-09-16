@@ -27,6 +27,11 @@ const fechaHora = new Intl.DateTimeFormat(LOCALE, {
   timeZone: ZONA_HORARIA,
 });
 
+const hora = new Intl.DateTimeFormat(LOCALE, {
+  timeStyle: 'short',
+  timeZone: ZONA_HORARIA,
+});
+
 /** Convierte a número lo que devuelve Supabase (numeric puede llegar como string). */
 function aNumero(valor: number | string | null | undefined): number {
   const n = Number(valor ?? 0);
@@ -56,4 +61,11 @@ export function formatDateTime(valor: string | Date | null | undefined, vacio = 
   if (!valor) return vacio;
   const fecha = new Date(valor);
   return Number.isNaN(fecha.getTime()) ? vacio : fechaHora.format(fecha);
+}
+
+/** Solo la hora: `12:30 p. m.` (hora de Honduras). */
+export function formatTime(valor: string | Date | null | undefined, vacio = '—'): string {
+  if (!valor) return vacio;
+  const fecha = new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? vacio : hora.format(fecha);
 }
