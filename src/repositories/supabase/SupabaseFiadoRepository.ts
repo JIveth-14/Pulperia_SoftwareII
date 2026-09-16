@@ -51,6 +51,7 @@ export class SupabaseFiadoRepository implements FiadoRepository {
       CACHE_KEYS.FIADOS_PENDING,
       CACHE_KEYS.FIADOS_PARTIAL,
       CACHE_KEYS.CLIENTS_WITH_BALANCE,
+      CACHE_KEYS.DASHBOARD_SUMMARY,
     ];
 
     if (clienteId) {

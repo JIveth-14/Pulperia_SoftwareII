@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "no-auto-commit-push",
+      "description": "Prevent automatic commits and pushes - manual review only",
+      "when": "tool:Bash matches 'git (commit|push|merge|rebase)'",
+      "then": "prompt-user"
+    }
+  ],
+  "permissions": {
+    "bash": ["allow"],
+    "read": ["allow"],
+    "edit": ["allow"],
+    "write": ["allow"]
+  },
+  "tools": {
+    "graphify": {
+      "enabled": true,
+      "path": ".graphify",
+      "cache": "graphify-cache",
+      "output": "graphify-output"
+    }
+  }
+}

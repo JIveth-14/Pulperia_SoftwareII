@@ -31,6 +31,7 @@ export const CACHE_KEYS = {
   PAGOS_LIST: 'pagos:list',
   PAGO: (id: number) => `pago:${id}`,
   PAGOS_BY_FIADO: (fiado_id: number) => `pagos:fiado:${fiado_id}`,
+  PAGOS_BY_CLIENT: (clientId: number) => `pagos:client:${clientId}`,
 
   // Ventas
   VENTAS_LIST: 'ventas:list',

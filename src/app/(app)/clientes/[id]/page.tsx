@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { createClientServer } from '@/lib/supabase';
 import { createRepositories } from '@/repositories/container';
-import { Card, EmptyState } from '@/components/ui';
+import { Card } from '@/components/ui';
+import { parseIdOrNotFound } from '@/lib/params';
 
 export default async function ClienteDetailPage({
   params,
@@ -11,9 +12,9 @@ export default async function ClienteDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const clienteId = parseIdOrNotFound(id);
   const supabase = await createClientServer();
   const repos = createRepositories(supabase);
-  const clienteId = parseInt(id);
 
   try {
     const [cliente, fiados, pagos] = await Promise.all([

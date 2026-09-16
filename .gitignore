@@ -45,3 +45,13 @@ legacy/expo/.env.example
 next-env.d.ts
 PLAN_MIGRACION_WEB.md
 
+# Graphify - Local analysis tool
+.graphify/
+graphify-cache/
+graphify-output/
+.graphify-temp/
+*.graphify
+graphify-*.json
+
+graphify-out/
+.graphifyignore

@@ -63,6 +63,18 @@ describe('shared ui components', () => {
     expect(onClick).toHaveBeenCalledTimes(1)
   })
 
+  it('renders the empty state action as a link when href is given', () => {
+    render(
+      <EmptyState
+        message="Sin clientes"
+        action={{ label: 'Crear cliente', href: '/clientes/nuevo' }}
+      />
+    )
+
+    expect(screen.getByRole('link', { name: 'Crear cliente' })).toHaveAttribute('href', '/clientes/nuevo')
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
   it('renders dismissible error messages', () => {
     const onDismiss = jest.fn()
 

@@ -4,7 +4,7 @@
  * Handles both Redis and fallback to in-memory if Redis is unavailable.
  */
 
-import { getRedisClient, isRedisAvailable } from './redis';
+import { getRedisClient } from './redis';
 
 const DEFAULT_TTL = 300; // 5 minutes
 const inMemoryCache = new Map<string, { value: unknown; expiresAt: number }>();
@@ -20,16 +20,14 @@ export async function getCacheValue<T>(key: string): Promise<T | null> {
 
   try {
     // Try Redis first if available
-    if (isRedisAvailable()) {
-      const redis = await getRedisClient();
-      if (redis) {
-        const value = await redis.get(key);
-        if (value) {
-          try {
-            return JSON.parse(value) as T;
-          } catch {
-            return null;
-          }
+    const redis = await getRedisClient();
+    if (redis) {
+      const value = await redis.get(key);
+      if (value) {
+        try {
+          return JSON.parse(value) as T;
+        } catch {
+          return null;
         }
       }
     }
@@ -66,12 +64,10 @@ export async function setCacheValue<T>(key: string, value: T, ttl: number = DEFA
     const serialized = JSON.stringify(value);
 
     // Try Redis first if available
-    if (isRedisAvailable()) {
-      const redis = await getRedisClient();
-      if (redis) {
-        await redis.setEx(key, ttl, serialized);
-        return;
-      }
+    const redis = await getRedisClient();
+    if (redis) {
+      await redis.setEx(key, ttl, serialized);
+      return;
     }
 
     // Fallback to in-memory cache
@@ -90,12 +86,10 @@ export async function setCacheValue<T>(key: string, value: T, ttl: number = DEFA
 export async function deleteCacheKey(key: string): Promise<void> {
   try {
     // Try Redis first if available
-    if (isRedisAvailable()) {
-      const redis = await getRedisClient();
-      if (redis) {
-        await redis.del(key);
-        return;
-      }
+    const redis = await getRedisClient();
+    if (redis) {
+      await redis.del(key);
+      return;
     }
 
     // Fallback to in-memory cache
@@ -111,14 +105,12 @@ export async function deleteCacheKey(key: string): Promise<void> {
 export async function deleteCacheKeys(keys: string[]): Promise<void> {
   try {
     // Try Redis first if available
-    if (isRedisAvailable()) {
-      const redis = await getRedisClient();
-      if (redis) {
-        if (keys.length > 0) {
-          await redis.del(keys);
-        }
-        return;
+    const redis = await getRedisClient();
+    if (redis) {
+      if (keys.length > 0) {
+        await redis.del(keys);
       }
+      return;
     }
 
     // Fallback to in-memory cache
@@ -136,12 +128,10 @@ export async function deleteCacheKeys(keys: string[]): Promise<void> {
 export async function clearAllCache(): Promise<void> {
   try {
     // Try Redis first if available
-    if (isRedisAvailable()) {
-      const redis = await getRedisClient();
-      if (redis) {
-        await redis.flushDb();
-        return;
-      }
+    const redis = await getRedisClient();
+    if (redis) {
+      await redis.flushDb();
+      return;
     }
 
     // Fallback to in-memory cache
@@ -165,25 +155,17 @@ export async function getCacheOrFetch<T>(
     return fetcher();
   }
 
-  try {
-    // Try to get from cache
-    const cached = await getCacheValue<T>(key);
-    if (cached !== null) {
-      return cached;
-    }
-
-    // Cache miss: fetch the data
-    const data = await fetcher();
-
-    // Store in cache
-    await setCacheValue(key, data, ttl);
-
-    return data;
-  } catch (error) {
-    console.error(`[Cache] Error in getCacheOrFetch for key "${key}":`, error);
-    // If there's an error, still try to fetch directly
-    return fetcher();
+  // getCacheValue/setCacheValue already swallow cache errors, so any error
+  // here comes from the fetcher and must propagate (retrying it would hit the
+  // database twice for the same failure).
+  const cached = await getCacheValue<T>(key);
+  if (cached !== null) {
+    return cached;
   }
+
+  const data = await fetcher();
+  await setCacheValue(key, data, ttl);
+  return data;
 }
 
 /**

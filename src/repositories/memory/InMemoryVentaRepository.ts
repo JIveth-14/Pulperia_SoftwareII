@@ -7,6 +7,7 @@ import {
   DEMO_CLIENTES,
 } from '../../lib/demo/demo-data';
 import { DemoReadOnlyError } from './DemoReadOnlyError';
+import { esDelDia } from '../../lib/dates';
 
 /**
  * Implementación en memoria de {@link VentaRepository} para el modo demo.
@@ -17,10 +18,7 @@ export class InMemoryVentaRepository implements VentaRepository {
   }
 
   async getDelDia(): Promise<Venta[]> {
-    const hoy = new Date().toDateString();
-    return DEMO_VENTAS.filter(
-      (v) => v.fecha && new Date(v.fecha).toDateString() === hoy
-    );
+    return DEMO_VENTAS.filter((v) => v.fecha && esDelDia(v.fecha));
   }
 
   async getConDetalle(id: number): Promise<VentaConDetalle> {

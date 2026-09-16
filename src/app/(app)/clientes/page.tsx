@@ -36,7 +36,7 @@ export default async function ClientesPage() {
             message="Comienza registrando tu primer cliente"
             action={{
               label: 'Crear cliente',
-              onClick: () => {},
+              href: '/clientes/nuevo',
             }}
           />
         ) : (

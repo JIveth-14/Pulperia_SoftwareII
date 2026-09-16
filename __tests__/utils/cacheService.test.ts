@@ -223,6 +223,30 @@ describe('cacheService', () => {
     await expect(getCacheValue('missed-key')).resolves.toEqual({ total: 22 })
   })
 
+  it('connects to redis on first use instead of waiting for an existing connection', async () => {
+    // Arrange: aún no hay conexión (isRedisAvailable = false) pero REDIS_URL es válida
+    const redis = { get: jest.fn().mockResolvedValue(JSON.stringify({ total: 4 })) }
+    mockIsRedisAvailable.mockReturnValue(false)
+    mockGetRedisClient.mockResolvedValue(redis as any)
+
+    // Act
+    const result = await getCacheValue('clients:list')
+
+    // Assert
+    expect(mockGetRedisClient).toHaveBeenCalled()
+    expect(redis.get).toHaveBeenCalledWith('clients:list')
+    expect(result).toEqual({ total: 4 })
+  })
+
+  it('propagates fetcher errors without retrying the fetch', async () => {
+    // Arrange
+    const fetcher = jest.fn().mockRejectedValue(new Error('db down'))
+
+    // Act + Assert
+    await expect(getCacheOrFetch('failing-key', fetcher)).rejects.toThrow('db down')
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
   it('bypasses cache lookup when caching is disabled', async () => {
     // Arrange
     process.env.CACHE_ENABLED = 'false'

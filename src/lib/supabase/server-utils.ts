@@ -1,5 +1,8 @@
-'use server';
-
+/**
+ * Helpers de sesión para Server Components y Server Actions.
+ * No llevan 'use server' a nivel de módulo: eso los publicaría como
+ * endpoints POST invocables desde cualquier cliente.
+ */
 import { createClient } from './server';
 import type { User } from '@supabase/supabase-js';
 
