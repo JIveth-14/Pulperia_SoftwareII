@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { Card, EmptyState } from '@/components/ui';
-import { getVentas } from '@/lib/demo/demo-data';
+import { createDemoRepositories } from '@/repositories/container';
 import { ReadOnlyNotice, DisabledButton } from '../ui';
 
 /** Registro de ventas en modo demo (solo lectura). */
-export default function DemoVentasPage() {
-  const ventas = getVentas();
+export default async function DemoVentasPage() {
+  const ventas = await createDemoRepositories().ventas.getAll();
 
   return (
     <div className="space-y-6">

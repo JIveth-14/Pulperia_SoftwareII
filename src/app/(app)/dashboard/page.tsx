@@ -1,5 +1,6 @@
 import { createClientServer } from '@/lib/supabase';
 import { createRepositories } from '@/repositories/container';
+import { MetricCard } from '@/components/ui';
 
 export default async function DashboardPage() {
   const supabase = await createClientServer();
@@ -96,28 +97,4 @@ export default async function DashboardPage() {
       </div>
     );
   }
-}
-
-function MetricCard({
-  title,
-  value,
-  color,
-}: {
-  title: string;
-  value: string;
-  color: 'blue' | 'green' | 'red' | 'purple';
-}) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-900',
-    green: 'bg-green-50 text-green-900',
-    red: 'bg-red-50 text-red-900',
-    purple: 'bg-purple-50 text-purple-900',
-  };
-
-  return (
-    <div className={`rounded-lg p-6 ${colorClasses[color]}`}>
-      <p className="text-sm font-medium opacity-75">{title}</p>
-      <p className="mt-2 text-3xl font-bold">{value}</p>
-    </div>
-  );
 }

@@ -4,3 +4,5 @@ export { Card } from './Card';
 export { ErrorMessage } from './ErrorMessage';
 export { EmptyState } from './EmptyState';
 export { LoadingSpinner } from './LoadingSpinner';
+export { MetricCard } from './MetricCard';
+export type { MetricColor } from './MetricCard';

@@ -1,19 +1,20 @@
 /**
- * Datos ficticios EN MEMORIA para el modo demo.
+ * Datos semilla ficticios EN MEMORIA para el modo demo.
  *
- * Tipados con las mismas interfaces que la app real (`src/types`), de modo que
- * las páginas demo se ven idénticas a producción pero sin tocar la base de datos.
- * Todo aquí es de solo lectura: no hay funciones de inserción/actualización.
+ * Tipados con las mismas interfaces que la app real (`src/types`). Este módulo
+ * SOLO expone los datasets; el acceso a datos se hace a través de los
+ * repositorios en memoria (`src/repositories/memory`), que implementan las
+ * mismas interfaces que los repositorios de Supabase. Así el demo y producción
+ * comparten exactamente el mismo contrato (DIP) y las mismas páginas pueden
+ * consumir cualquiera de las dos implementaciones (LSP).
  */
 
 import type {
   Cliente,
-  ClienteConSaldo,
   Producto,
   Fiado,
   Pago,
   Venta,
-  VentaConDetalle,
   DetalleVenta,
 } from '@/types';
 
@@ -86,50 +87,3 @@ export const DEMO_DETALLE_VENTA: DetalleVenta[] = [
   { id: 8, venta_id: 4, producto_id: 3, cantidad: 1, precio_unitario: 20, subtotal: 20 },
   { id: 9, venta_id: 4, producto_id: 1, cantidad: 1, precio_unitario: 18, subtotal: 18 },
 ];
-
-// ==========================================
-// Selectores derivados (equivalentes a los métodos de los repositorios)
-// ==========================================
-
-/** Saldo total pendiente de un cliente = suma de saldo_pendiente de sus fiados. */
-function saldoDeCliente(clienteId: number): number {
-  return DEMO_FIADOS
-    .filter((f) => f.cliente_id === clienteId)
-    .reduce((sum, f) => sum + f.saldo_pendiente, 0);
-}
-
-export function getClientesConSaldo(): ClienteConSaldo[] {
-  return DEMO_CLIENTES.map((c) => ({ ...c, saldo: saldoDeCliente(c.id) }));
-}
-
-export function getProductos(): Producto[] {
-  return [...DEMO_PRODUCTOS];
-}
-
-export function getVentas(): Venta[] {
-  return [...DEMO_VENTAS].sort((a, b) => b.id - a.id);
-}
-
-/** Ventas cuya fecha es hoy (para el dashboard). */
-export function getVentasDelDia(): Venta[] {
-  const hoy = new Date().toDateString();
-  return DEMO_VENTAS.filter((v) => v.fecha && new Date(v.fecha).toDateString() === hoy);
-}
-
-export function getVentaConDetalle(ventaId: number): VentaConDetalle | null {
-  const venta = DEMO_VENTAS.find((v) => v.id === ventaId);
-  if (!venta) return null;
-  const detalles = DEMO_DETALLE_VENTA
-    .filter((d) => d.venta_id === ventaId)
-    .map((d) => ({ ...d, producto: DEMO_PRODUCTOS.find((p) => p.id === d.producto_id) }));
-  const cliente = venta.cliente_id
-    ? DEMO_CLIENTES.find((c) => c.id === venta.cliente_id)
-    : undefined;
-  return {
-    ...venta,
-    detalles,
-    cliente: cliente
-      ? { id: cliente.id, nombre: cliente.nombre, telefono: cliente.telefono }
-      : undefined,
-  };
-}

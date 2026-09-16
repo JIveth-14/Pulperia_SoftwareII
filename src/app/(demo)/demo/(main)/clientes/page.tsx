@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { Card, EmptyState } from '@/components/ui';
-import { getClientesConSaldo } from '@/lib/demo/demo-data';
+import { createDemoRepositories } from '@/repositories/container';
 import { ReadOnlyNotice, DisabledButton } from '../ui';
 
 /** Lista de clientes en modo demo (solo lectura). */
-export default function DemoClientesPage() {
-  const clientes = getClientesConSaldo();
+export default async function DemoClientesPage() {
+  const clientes = await createDemoRepositories().clientes.getConSaldo();
 
   return (
     <div className="space-y-6">

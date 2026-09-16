@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { Card, EmptyState } from '@/components/ui';
-import { getProductos } from '@/lib/demo/demo-data';
+import { createDemoRepositories } from '@/repositories/container';
 import { ReadOnlyNotice, DisabledButton } from '../ui';
 
 /** Inventario en modo demo (solo lectura). */
-export default function DemoProductosPage() {
-  const productos = getProductos();
+export default async function DemoProductosPage() {
+  const productos = await createDemoRepositories().productos.getAll();
   const conStockBajo = productos.filter((p) => p.stock < p.stock_minimo);
 
   return (

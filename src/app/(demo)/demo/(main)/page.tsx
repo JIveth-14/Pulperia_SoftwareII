@@ -1,12 +1,16 @@
 export const dynamic = 'force-dynamic';
 
-import { getClientesConSaldo, getProductos, getVentasDelDia } from '@/lib/demo/demo-data';
+import { createDemoRepositories } from '@/repositories/container';
+import { MetricCard } from '@/components/ui';
 
 /** Dashboard del modo demo (misma vista que /dashboard, con datos ficticios). */
-export default function DemoDashboardPage() {
-  const clientesConSaldo = getClientesConSaldo();
-  const ventasDelDia = getVentasDelDia();
-  const productos = getProductos();
+export default async function DemoDashboardPage() {
+  const repos = createDemoRepositories();
+  const [clientesConSaldo, ventasDelDia, productos] = await Promise.all([
+    repos.clientes.getConSaldo(),
+    repos.ventas.getDelDia(),
+    repos.productos.getAll(),
+  ]);
 
   const saldoPendiente = clientesConSaldo.reduce((sum, c) => sum + c.saldo, 0);
   const ventasTotalDelDia = ventasDelDia.reduce((sum, v) => sum + Number(v.total), 0);
@@ -57,29 +61,6 @@ export default function DemoDashboardPage() {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function MetricCard({
-  title,
-  value,
-  color,
-}: {
-  title: string;
-  value: string;
-  color: 'blue' | 'green' | 'red' | 'purple';
-}) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-900',
-    green: 'bg-green-50 text-green-900',
-    red: 'bg-red-50 text-red-900',
-    purple: 'bg-purple-50 text-purple-900',
-  };
-  return (
-    <div className={`rounded-lg p-6 ${colorClasses[color]}`}>
-      <p className="text-sm font-medium opacity-75">{title}</p>
-      <p className="mt-2 text-3xl font-bold">{value}</p>
     </div>
   );
 }
