@@ -352,7 +352,7 @@ Propietario - 2025
 ## 👤 Autor
 
 **Jessica Iveth P. Dubón**  
-📧 levapo97@gmail.com
+📧 jessicapaz2003@unitec.edu
 
 ---
 

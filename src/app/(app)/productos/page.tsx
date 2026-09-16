@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { createClientServer } from '@/lib/supabase';
 import { createRepositories } from '@/repositories/container';
-import { Card, EmptyState } from '@/components/ui';
+import { Alert, Card, EmptyState, PageHeader, buttonClass } from '@/components/ui';
+import { formatMoney } from '@/lib/format';
 
 export default async function ProductosPage() {
   const supabase = await createClientServer();
@@ -15,66 +16,55 @@ export default async function ProductosPage() {
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Productos</h1>
-            <p className="mt-2 text-gray-600">
-              Gestiona tu inventario y stock
-            </p>
-          </div>
-          <Link
-            href="/productos/nuevo"
-            className="rounded-md bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-light transition-colors"
-          >
-            + Nuevo producto
-          </Link>
-        </div>
+        <PageHeader
+          title="Productos"
+          description="Gestiona tu inventario y stock"
+          actions={
+            <Link href="/productos/nuevo" className={buttonClass('primary')}>
+              Nuevo producto
+            </Link>
+          }
+        />
 
         {conStockBajo.length > 0 && (
-          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-            <h3 className="font-semibold text-yellow-900">
-              ⚠️ Productos con stock bajo
-            </h3>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-yellow-800">
+          <Alert tone="warning" title="Productos con stock bajo">
+            <ul className="space-y-0.5">
               {conStockBajo.map((p) => (
                 <li key={p.id}>
-                  {p.nombre}: {p.stock}/{p.stock_minimo} unidades
+                  {p.nombre}: <span className="tabular-nums">{p.stock}/{p.stock_minimo}</span> unidades
                 </li>
               ))}
             </ul>
-          </div>
+          </Alert>
         )}
 
         {productos.length === 0 ? (
           <EmptyState
-            icon="📦"
             title="Sin productos"
             message="Comienza registrando tu primer producto"
             action={{ label: 'Crear producto', href: '/productos/nuevo' }}
           />
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {productos.map((producto) => (
               <Card key={producto.id}>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-text">
+                    <h3 className="font-medium text-text">
                       {producto.nombre}
                     </h3>
-                    <div className="mt-2 flex gap-4 text-sm text-text-secondary">
-                      <span>💵 ${Number(producto.precio).toFixed(2)}</span>
-                      <span className={`${
-                        producto.stock < producto.stock_minimo
-                          ? 'text-danger'
-                          : 'text-secondary'
+                    <div className="mt-0.5 flex gap-4 text-sm text-text-secondary">
+                      <span className="tabular-nums">{formatMoney(producto.precio)}</span>
+                      <span className={`tabular-nums ${
+                        producto.stock < producto.stock_minimo ? 'text-danger' : ''
                       }`}>
-                        📦 {producto.stock} / {producto.stock_minimo}
+                        Stock {producto.stock} / {producto.stock_minimo}
                       </span>
                     </div>
                   </div>
                   <Link
                     href={`/productos/${producto.id}/editar`}
-                    className="rounded-md bg-gray-200 text-text px-3 py-2 text-sm font-medium hover:bg-gray-300"
+                    className={buttonClass('secondary', 'sm')}
                   >
                     Editar
                   </Link>
@@ -85,13 +75,7 @@ export default async function ProductosPage() {
         )}
       </div>
     );
-  } catch (error) {
-    return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-red-700">
-          Error al cargar los productos. Por favor, intenta de nuevo más tarde.
-        </p>
-      </div>
-    );
+  } catch {
+    return <Alert tone="danger">Error al cargar los productos. Por favor, intenta de nuevo más tarde.</Alert>;
   }
 }

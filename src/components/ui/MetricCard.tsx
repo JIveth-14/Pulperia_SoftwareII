@@ -1,29 +1,32 @@
 /**
  * Tarjeta de métrica usada en los dashboards (real y demo).
  * Extraída para eliminar la duplicación literal que existía en ambas páginas (DRY).
+ *
+ * Diseño neutro: el color solo se usa cuando comunica algo (p. ej. deuda).
  */
-export type MetricColor = 'blue' | 'green' | 'red' | 'purple';
+export type MetricTone = 'default' | 'success' | 'danger';
 
-const COLOR_CLASSES: Record<MetricColor, string> = {
-  blue: 'bg-blue-50 text-blue-900',
-  green: 'bg-green-50 text-green-900',
-  red: 'bg-red-50 text-red-900',
-  purple: 'bg-purple-50 text-purple-900',
+const TONE_CLASSES: Record<MetricTone, string> = {
+  default: 'text-text',
+  success: 'text-success',
+  danger: 'text-danger',
 };
 
 export function MetricCard({
   title,
   value,
-  color,
+  tone = 'default',
 }: {
   title: string;
   value: string;
-  color: MetricColor;
+  tone?: MetricTone;
 }) {
   return (
-    <div className={`rounded-lg p-6 ${COLOR_CLASSES[color]}`}>
-      <p className="text-sm font-medium opacity-75">{title}</p>
-      <p className="mt-2 text-3xl font-bold">{value}</p>
+    <div className="rounded-lg border border-border bg-surface px-5 py-4">
+      <p className="text-sm text-text-secondary">{title}</p>
+      <p className={`mt-1 text-2xl font-semibold tabular-nums tracking-tight ${TONE_CLASSES[tone]}`}>
+        {value}
+      </p>
     </div>
   );
 }

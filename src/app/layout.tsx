@@ -1,6 +1,14 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import { ToastProvider } from '@/components/Toast/ToastContext';
 import './globals.css';
+
+// Fuente autoalojada por Next (no hace peticiones a Google en runtime).
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const dynamic = 'force-dynamic'
 
@@ -26,8 +34,8 @@ export const metadata: Metadata = {
     description: 'Sistema para gestionar tu pulpería de forma eficiente',
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
   },
   manifest: '/manifest.json',
   robots: {
@@ -36,12 +44,16 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: '#fafafa',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es">
-      <body className="antialiased">
+    <html lang="es" className={inter.variable}>
+      <body className="min-h-screen bg-background font-sans text-text">
         <ToastProvider>{children}</ToastProvider>
         <script
           dangerouslySetInnerHTML={{

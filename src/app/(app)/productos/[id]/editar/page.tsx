@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { PageHeader } from '@/components/ui';
 import { parseIdOrNotFound } from '@/lib/params';
 
 export default async function EditarProductoPage({
@@ -10,20 +10,13 @@ export default async function EditarProductoPage({
   const id = parseIdOrNotFound(rawId);
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          href="/productos"
-          className="text-sm text-indigo-600 hover:text-indigo-700"
-        >
-          ← Volver
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">
-          Editar producto #{id}
-        </h1>
-      </div>
+      <PageHeader
+        title={`Editar producto #${id}`}
+        backHref="/productos"
+      />
 
-      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
-        <p className="text-gray-600">
+      <div className="rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
+        <p className="text-sm text-text-secondary">
           Formulario de edición (se implementará en próximas fases)
         </p>
       </div>

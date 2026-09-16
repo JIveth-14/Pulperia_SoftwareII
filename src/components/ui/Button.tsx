@@ -10,17 +10,40 @@ interface ButtonProps
 }
 
 const variantStyles = {
-  primary: 'bg-primary text-white hover:bg-primary-light disabled:opacity-50',
+  primary: 'bg-primary text-primary-foreground hover:bg-primary-hover',
   secondary:
-    'bg-gray-200 text-text hover:bg-gray-300 disabled:opacity-50',
-  danger: 'bg-danger text-white hover:bg-red-600 disabled:opacity-50',
+    'border border-border-strong bg-surface text-text hover:bg-muted',
+  danger: 'bg-danger text-white hover:bg-danger-hover',
 };
 
 const sizeStyles = {
-  sm: 'px-2 py-1 text-sm',
-  md: 'px-4 py-2 text-md',
-  lg: 'px-6 py-3 text-lg',
+  sm: 'px-2.5 py-1 text-sm',
+  md: 'px-4 py-2 text-sm',
+  lg: 'px-6 py-3 text-md',
 };
+
+export type ButtonVariant = keyof typeof variantStyles;
+export type ButtonSize = keyof typeof sizeStyles;
+
+/**
+ * Clases de botón reutilizables también en `<Link>`, para que los enlaces de
+ * acción se vean igual que los botones sin duplicar estilos.
+ */
+export function buttonClass(
+  variant: ButtonVariant = 'primary',
+  size: ButtonSize = 'md',
+  extra = ''
+): string {
+  return [
+    'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+    'disabled:cursor-not-allowed disabled:opacity-50',
+    variantStyles[variant],
+    sizeStyles[size],
+    extra,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
 
 export function Button({
   variant = 'primary',
@@ -35,13 +58,7 @@ export function Button({
   return (
     <button
       disabled={disabled || loading}
-      className={`
-        rounded-md font-medium transition-colors
-        ${variantStyles[variant]}
-        ${sizeStyles[size]}
-        ${fullWidth ? 'w-full' : ''}
-        ${className}
-      `}
+      className={buttonClass(variant, size, `${fullWidth ? 'w-full' : ''} ${className}`.trim())}
       {...props}
     >
       {loading ? (

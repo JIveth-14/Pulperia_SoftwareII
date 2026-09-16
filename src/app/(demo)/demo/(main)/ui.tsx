@@ -1,3 +1,5 @@
+import { Alert, buttonClass } from '@/components/ui';
+
 /**
  * Pequeños componentes compartidos por las páginas demo:
  * refuerzan que la demo es de SOLO LECTURA (equivalente a bloquear
@@ -7,20 +9,20 @@
 /** Aviso de solo lectura mostrado sobre cada listado. */
 export function ReadOnlyNotice() {
   return (
-    <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
-      🔒 Solo lectura: en la demo las acciones de crear, editar y eliminar están deshabilitadas.
-    </div>
+    <Alert>
+      Solo lectura: en la demo las acciones de crear, editar y eliminar están deshabilitadas.
+    </Alert>
   );
 }
 
 /** Botón visualmente presente pero deshabilitado (no permite mutaciones). */
-export function DisabledButton({ label }: { label: string }) {
+export function DisabledButton({ label, size = 'md' }: { label: string; size?: 'sm' | 'md' }) {
   return (
     <button
       type="button"
       disabled
       title="Deshabilitado en modo demo"
-      className="cursor-not-allowed rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-400"
+      className={buttonClass('secondary', size)}
     >
       {label}
     </button>

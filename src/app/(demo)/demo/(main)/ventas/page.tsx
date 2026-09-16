@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic';
 
-import { Card, EmptyState } from '@/components/ui';
+import { Card, EmptyState, PageHeader } from '@/components/ui';
 import { createDemoRepositories } from '@/repositories/container';
+import { formatDate, formatMoney } from '@/lib/format';
 import { ReadOnlyNotice, DisabledButton } from '../ui';
 
 /** Registro de ventas en modo demo (solo lectura). */
@@ -10,33 +11,28 @@ export default async function DemoVentasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Ventas</h1>
-          <p className="mt-2 text-gray-600">Registro de todas tus ventas</p>
-        </div>
-        <DisabledButton label="+ Nueva venta" />
-      </div>
+      <PageHeader
+        title="Ventas"
+        description="Registro de todas tus ventas"
+        actions={<DisabledButton label="Nueva venta" />}
+      />
 
       <ReadOnlyNotice />
 
       {ventas.length === 0 ? (
-        <EmptyState icon="🛒" title="Sin ventas" message="Comienza registrando tu primera venta" />
+        <EmptyState title="Sin ventas" message="Comienza registrando tu primera venta" />
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {ventas.map((venta) => (
             <Card key={venta.id}>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Venta #{venta.id}</h3>
-                  <div className="mt-2 flex gap-4 text-sm text-gray-600">
-                    <span>📅 {venta.fecha ? new Date(venta.fecha).toLocaleDateString() : 'Sin fecha'}</span>
-                    <span>💳 {venta.tipo_pago === 'contado' ? 'Contado' : 'Fiado'}</span>
-                  </div>
+                  <h3 className="font-medium text-text">Venta #{venta.id}</h3>
+                  <p className="mt-0.5 text-sm text-text-secondary">
+                    {formatDate(venta.fecha)} · {venta.tipo_pago === 'contado' ? 'Contado' : 'Fiado'}
+                  </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-gray-900">${Number(venta.total).toFixed(2)}</p>
-                </div>
+                <p className="text-lg font-semibold tabular-nums text-text">{formatMoney(venta.total)}</p>
               </div>
             </Card>
           ))}

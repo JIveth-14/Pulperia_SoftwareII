@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { createDemoRepositories } from '@/repositories/container';
-import { MetricCard } from '@/components/ui';
+import { Alert, MetricCard, PageHeader } from '@/components/ui';
+import { formatMoney } from '@/lib/format';
 
 /** Dashboard del modo demo (misma vista que /dashboard, con datos ficticios). */
 export default async function DemoDashboardPage() {
@@ -17,50 +18,50 @@ export default async function DemoDashboardPage() {
   const productosBajos = productos.filter((p) => p.stock < p.stock_minimo);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">Resumen de tu negocio (datos de demostración)</p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader title="Dashboard" description="Resumen de tu negocio (datos de demostración)" />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard title="Clientes" value={clientesConSaldo.length.toString()} color="blue" />
-        <MetricCard title="Ventas del día" value={`$${ventasTotalDelDia.toFixed(2)}`} color="green" />
-        <MetricCard title="Saldo pendiente" value={`$${saldoPendiente.toFixed(2)}`} color="red" />
-        <MetricCard title="Productos" value={productos.length.toString()} color="purple" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard title="Clientes" value={clientesConSaldo.length.toString()} />
+        <MetricCard title="Ventas del día" value={formatMoney(ventasTotalDelDia)} />
+        <MetricCard
+          title="Saldo pendiente"
+          value={formatMoney(saldoPendiente)}
+          tone={saldoPendiente > 0 ? 'danger' : 'default'}
+        />
+        <MetricCard title="Productos" value={productos.length.toString()} />
       </div>
 
       {productosBajos.length > 0 && (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <h2 className="font-semibold text-yellow-900">⚠️ Productos con stock bajo</h2>
-          <p className="mt-2 text-sm text-yellow-800">
-            {productosBajos.length} producto(s) por debajo del stock mínimo:
-          </p>
-          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-yellow-800">
+        <Alert
+          tone="warning"
+          title={`${productosBajos.length} producto(s) por debajo del stock mínimo`}
+        >
+          <ul className="space-y-0.5">
             {productosBajos.slice(0, 5).map((p) => (
               <li key={p.id}>
-                {p.nombre} ({p.stock}/{p.stock_minimo})
+                {p.nombre} <span className="tabular-nums">({p.stock}/{p.stock_minimo})</span>
               </li>
             ))}
           </ul>
-        </div>
+        </Alert>
       )}
 
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Últimas ventas</h2>
+      <section className="rounded-lg border border-border bg-surface">
+        <h2 className="border-b border-border px-5 py-3 text-sm font-medium text-text">Ventas de hoy</h2>
         {ventasDelDia.length === 0 ? (
-          <p className="text-gray-600">Sin ventas el día de hoy</p>
+          <p className="px-5 py-4 text-sm text-text-secondary">Sin ventas el día de hoy</p>
         ) : (
-          <div className="space-y-2">
+          <ul className="divide-y divide-border">
             {ventasDelDia.slice(0, 5).map((v) => (
-              <div key={v.id} className="flex justify-between text-sm">
-                <span className="text-gray-600">Venta #{v.id}</span>
-                <span className="font-semibold text-gray-900">${v.total.toFixed(2)}</span>
-              </div>
+              <li key={v.id} className="flex justify-between px-5 py-3 text-sm">
+                <span className="text-text-secondary">Venta #{v.id}</span>
+                <span className="font-medium tabular-nums text-text">{formatMoney(v.total)}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
+      </section>
     </div>
   );
 }

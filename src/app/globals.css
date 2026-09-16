@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+/*
+ * Tokens de diseño (Tailwind v4: se definen en CSS, no en tailwind.config.ts).
+ * Cada variable --color-<nombre> genera las utilidades bg-<nombre>,
+ * text-<nombre>, border-<nombre>, etc.
+ *
+ * Estilo minimalista: neutros zinc, un único color de acento (primary) y
+ * colores de estado solo para comunicar significado (saldo, stock, errores).
+ */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Superficies y texto */
+  --color-background: #fafafa;
+  --color-surface: #ffffff;
+  --color-muted: #f4f4f5;
+  --color-border: #e4e4e7;
+  --color-border-strong: #d4d4d8;
+  --color-text: #18181b;
+  --color-text-secondary: #71717a;
+
+  /* Acento único */
+  --color-primary: #18181b;
+  --color-primary-hover: #3f3f46;
+  --color-primary-foreground: #ffffff;
+
+  /* Estados */
+  --color-success: #15803d;
+  --color-success-soft: #f0fdf4;
+  --color-danger: #b91c1c;
+  --color-danger-hover: #991b1b;
+  --color-danger-soft: #fef2f2;
+  --color-warning: #a16207;
+  --color-warning-soft: #fefce8;
+
+  /* Escala tipográfica: `text-md` no existe por defecto */
+  --text-md: 1rem;
+  --text-md--line-height: 1.5rem;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
