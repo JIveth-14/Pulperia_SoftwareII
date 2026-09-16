@@ -51,7 +51,7 @@ export function VentasView({ ventas, clientes = [], modo = 'real' }: VentasViewP
           </THead>
           <TBody>
             {ventas.map((venta) => (
-              <Tr key={venta.id}>
+              <Tr key={venta.id} href={soloLectura ? undefined : `/ventas/${venta.id}`}>
                 <Td>
                   {soloLectura ? (
                     <span className="font-medium text-text">Venta #{venta.id}</span>

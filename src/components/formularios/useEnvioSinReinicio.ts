@@ -4,9 +4,10 @@ import { startTransition, type FormEvent } from 'react';
 
 /**
  * Con `<form action={...}>`, React 19 reinicia el formulario al terminar la
- * acción: los inputs controlados (carrito, cliente, monto) quedan vacíos en
- * pantalla aunque su estado siga intacto. Para esos formularios se envía la
- * acción manualmente desde `onSubmit`, sin reinicio.
+ * acción, también cuando devuelve errores. Eso borra lo escrito: los inputs
+ * controlados (carrito, cliente) quedan vacíos en pantalla, y los numéricos
+ * con foco (enviar con Enter) no recuperan su valor. Todos los formularios
+ * envían la acción desde `onSubmit`, sin reinicio.
  */
 export function useEnvioSinReinicio(enviar: (datos: FormData) => void) {
   return (evento: FormEvent<HTMLFormElement>) => {

@@ -198,6 +198,50 @@ describe('next auth middleware', () => {
     })
   })
 
+  describe('modo demo', () => {
+    it('deja pasar las rutas públicas de la demo sin consultar Supabase', async () => {
+      for (const ruta of ['/demo/login', '/demo/entrar', '/demo/expirado', '/demo/salir']) {
+        const response = await middleware(createRequest(ruta))
+        expect(response).toMatchObject({ type: 'next' })
+      }
+      expect(mockCreateServerClient).not.toHaveBeenCalled()
+    })
+
+    it('manda al login demo si no hay sesión', async () => {
+      const response = await middleware(createRequest('/demo/clientes'))
+      expect(response).toMatchObject({ type: 'redirect', url: 'https://pulperia.test/demo/login' })
+    })
+
+    it('manda a /demo/expirado y borra la cookie si la sesión venció', async () => {
+      const response = await middleware(createRequest('/demo', String(Date.now() - 1000)))
+
+      expect(response).toMatchObject({ type: 'redirect', url: 'https://pulperia.test/demo/expirado' })
+      expect(response.cookies.delete).toHaveBeenCalledWith({ name: 'demo_session', path: '/demo' })
+    })
+
+    it('trata una cookie manipulada como sesión vencida', async () => {
+      const response = await middleware(createRequest('/demo/ventas', 'no-es-numero'))
+      expect(response).toMatchObject({ type: 'redirect', url: 'https://pulperia.test/demo/expirado' })
+    })
+
+    it('permite la demo con sesión vigente y marca la respuesta', async () => {
+      const response = await middleware(createRequest('/demo/productos', String(Date.now() + 60_000)))
+
+      expect(response).toMatchObject({ type: 'next' })
+      expect(response.headers.set).toHaveBeenCalledWith('x-demo-mode', '1')
+      expect(mockCreateServerClient).not.toHaveBeenCalled()
+    })
+  })
+
+  it('no bloquea rutas públicas si la verificación de sesión falla', async () => {
+    mockGetSupabaseEnv.mockImplementation(() => {
+      throw new Error('missing env')
+    })
+
+    const response = await middleware(createRequest('/login'))
+    expect(response).toMatchObject({ type: 'next' })
+  })
+
   it('keeps the public matcher configuration intact', () => {
     expect(config.matcher).toEqual([
       '/demo/:path*',

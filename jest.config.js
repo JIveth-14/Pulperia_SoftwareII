@@ -16,22 +16,27 @@ const config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
+  // e2e/ son pruebas de Playwright (se corren con `npm run test:e2e`).
+  testPathIgnorePatterns: ['<rootDir>/e2e/', '<rootDir>/node_modules/'],
+  // Debe coincidir con sonar.sources/sonar.coverage.exclusions: un archivo que
+  // Sonar analiza pero no aparece en lcov.info cuenta como 0 % cubierto.
   collectCoverageFrom: [
-    'src/middleware.ts',
-    'src/app/api/**/*.{js,jsx,ts,tsx}',
-    'src/components/**/*.{js,jsx,ts,tsx}',
-    'src/lib/cache/cacheKeys.ts',
-    'src/lib/cache/cacheService.ts',
-    'src/lib/supabase/**/*.{js,jsx,ts,tsx}',
-    'src/utils/*.ts',
-    'MORA_APP/**/*.{js,jsx,ts,tsx}',
+    'src/**/*.{js,jsx,ts,tsx}',
+    'MORA_APP/backend/**/*.{js,jsx,ts,tsx}',
+    'MORA_APP/frontend/**/*.{js,jsx,ts,tsx}',
     '!**/*.d.ts',
     '!**/*.stories.{js,jsx,ts,tsx}',
     '!**/__tests__/**',
     '!**/?(*.)+(spec|test).[jt]s?(x)',
+    '!src/app/**/page.tsx',
+    '!src/app/**/layout.tsx',
+    '!src/app/presentacion/**',
+    '!src/repositories/**',
+    '!src/types/**',
     '!src/lib/cache/index.ts',
     '!src/lib/cache/redis.ts',
     '!src/lib/supabase/index.ts',
+    '!src/lib/supabase/sql/**',
   ],
   coverageThreshold: {
     global: {

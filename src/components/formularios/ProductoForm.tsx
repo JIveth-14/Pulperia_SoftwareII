@@ -6,6 +6,7 @@ import type { Producto } from '@/types';
 import { Input, buttonClass } from '@/components/ui';
 import { ESTADO_INICIAL } from '@/lib/formulario';
 import { BotonEnviar } from './BotonEnviar';
+import { useEnvioSinReinicio } from './useEnvioSinReinicio';
 import { ErrorFormulario } from './ErrorFormulario';
 import type { AccionFormulario } from './tipos';
 
@@ -18,12 +19,13 @@ interface ProductoFormProps {
 }
 
 export function ProductoForm({ accion, producto, cancelarHref }: ProductoFormProps) {
-  const [estado, enviar] = useActionState(accion, ESTADO_INICIAL);
+  const [estado, enviar, enviando] = useActionState(accion, ESTADO_INICIAL);
+  const alEnviar = useEnvioSinReinicio(enviar);
   const valor = (campo: Campo, porDefecto = '') =>
     estado.valores?.[campo] ?? (producto ? String(producto[campo]) : porDefecto);
 
   return (
-    <form action={enviar} className="space-y-4" noValidate>
+    <form onSubmit={alEnviar} className="space-y-4" noValidate>
       <ErrorFormulario estado={estado} />
 
       <Input
@@ -82,7 +84,7 @@ export function ProductoForm({ accion, producto, cancelarHref }: ProductoFormPro
         <Link href={cancelarHref} className={buttonClass('secondary')}>
           Cancelar
         </Link>
-        <BotonEnviar>{producto ? 'Guardar cambios' : 'Registrar producto'}</BotonEnviar>
+        <BotonEnviar pendiente={enviando}>{producto ? 'Guardar cambios' : 'Registrar producto'}</BotonEnviar>
       </div>
     </form>
   );

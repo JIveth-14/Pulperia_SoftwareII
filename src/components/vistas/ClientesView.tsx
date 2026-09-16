@@ -64,7 +64,7 @@ export function ClientesView({ clientes, modo = 'real', busqueda = '' }: Cliente
           </THead>
           <TBody>
             {filtrados.map((cliente) => (
-              <Tr key={cliente.id}>
+              <Tr key={cliente.id} href={soloLectura ? undefined : `/clientes/${cliente.id}`}>
                 <Td>
                   {soloLectura ? (
                     <span className="font-medium text-text">{cliente.nombre}</span>
