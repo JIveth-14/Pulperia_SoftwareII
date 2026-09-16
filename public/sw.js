@@ -1,130 +1,72 @@
-const CACHE_NAME = 'pulperia-cache-v1';
-const RUNTIME_CACHE = 'pulperia-runtime-v1';
-const API_CACHE = 'pulperia-api-v1';
+/*
+ * Service worker de Pulpería.
+ *
+ * Reglas de seguridad:
+ * - NUNCA guarda páginas HTML, respuestas de la API ni datos RSC: contienen
+ *   información del negocio y seguirían visibles sin conexión tras cerrar sesión.
+ * - Solo cachea archivos estáticos inmutables (/_next/static, íconos) y la
+ *   página offline.
+ * - Al activarse borra todas las cachés anteriores (incluidas las de la
+ *   versión vieja que sí guardaba páginas privadas).
+ *
+ * Para invalidar la caché en todos los dispositivos, sube VERSION.
+ */
+const VERSION = 'v2';
+const CACHE_ESTATICA = `pulperia-estatico-${VERSION}`;
+const PAGINA_OFFLINE = '/offline.html';
+const PRECARGA = [PAGINA_OFFLINE, '/favicon.svg', '/icons/icon-192.png', '/icons/icon-512.png'];
 
-const ASSETS_TO_CACHE = [
-  '/',
-  '/manifest.json',
-  '/favicon.ico',
-  '/index.html',
-  '/offline.html',
-];
-
-// Install event - cache essential assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE).catch(() => {
-        console.warn('Some assets failed to cache during install');
-      });
-    })
+    caches
+      .open(CACHE_ESTATICA)
+      .then((cache) => cache.addAll(PRECARGA))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activate event - clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE && cacheName !== API_CACHE) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((nombres) => Promise.all(nombres.filter((n) => n !== CACHE_ESTATICA).map((n) => caches.delete(n))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch event - cache-first strategy for assets, network-first for APIs
+function esEstatico(url) {
+  return url.pathname.startsWith('/_next/static/') || PRECARGA.includes(url.pathname);
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
+  if (request.method !== 'GET') return;
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Archivos estáticos con hash: primero caché, luego red.
+  if (esEstatico(url)) {
+    event.respondWith(
+      caches.match(request).then(
+        (enCache) =>
+          enCache ||
+          fetch(request).then((respuesta) => {
+            if (respuesta.ok) {
+              const copia = respuesta.clone();
+              caches.open(CACHE_ESTATICA).then((cache) => cache.put(request, copia));
+            }
+            return respuesta;
+          })
+      )
+    );
     return;
   }
 
-  // API requests - network first
-  if (url.pathname.includes('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const cache = caches.open(API_CACHE);
-            cache.then((c) => c.put(request, response.clone()));
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request).then((cachedResponse) => {
-            return cachedResponse || new Response('Offline - API unavailable', { status: 503 });
-          });
-        })
-    );
+  // Navegación: siempre red; sin conexión, la página offline (nunca una copia privada).
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match(PAGINA_OFFLINE)));
   }
 
-  // Static assets - cache first
-  else if (
-    request.destination === 'image' ||
-    request.destination === 'style' ||
-    request.destination === 'script' ||
-    request.destination === 'font'
-  ) {
-    event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return fetch(request).then((response) => {
-          if (!response || response.status !== 200) {
-            return response;
-          }
-          const cache = caches.open(CACHE_NAME);
-          cache.then((c) => c.put(request, response.clone()));
-          return response;
-        });
-      })
-    );
-  }
-
-  // HTML and other documents - network first
-  else {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const cache = caches.open(RUNTIME_CACHE);
-            cache.then((c) => c.put(request, response.clone()));
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request).then((cachedResponse) => {
-            return cachedResponse || caches.match('/offline.html');
-          });
-        })
-    );
-  }
-});
-
-// Background sync for offline actions
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-purchases') {
-    event.waitUntil(
-      caches.open(API_CACHE).then((cache) => {
-        return cache.match('/offline-queue');
-      }).then((response) => {
-        if (response) {
-          return fetch('/api/sync', {
-            method: 'POST',
-            body: response,
-          });
-        }
-      })
-    );
-  }
+  // Todo lo demás (API, datos RSC, Server Actions) va directo a la red.
 });

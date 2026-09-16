@@ -112,47 +112,46 @@ Abre [http://localhost:3000](http://localhost:3000)
 - **[`docs/caching.md`](docs/caching.md)** — Estrategia de caché y TTL
 - **[`docs/idempotency.md`](docs/idempotency.md)** — Garantías de idempotencia
 - **[`docs/deployment.md`](docs/deployment.md)** — Despliegue a Vercel
+- **[`docs/CAPSTONE_DEMO.md`](docs/CAPSTONE_DEMO.md)** — Guía de demostración del capstone
+- **[`docs/TESTING_QUICK_START.md`](docs/TESTING_QUICK_START.md)** — Cómo correr las pruebas
+- **[`docs/SONARCLOUD_SETUP.md`](docs/SONARCLOUD_SETUP.md)** — Calidad y cobertura en SonarCloud
 
 ---
 
 ## 📁 Estructura del Proyecto
 
 ```
-pulperia-web/
-├── supabase/
-│   ├── config.toml
-│   └── migrations/                    # 12 migraciones idempotentes
-│       ├── 000001_extensions.sql
-│       ├── 000002_enums.sql
-│       ├── 000003_create_tables.sql
-│       ├── ...
-│       └── 000012_audit_tables.sql
+Pulperia_SoftwareII/
+├── supabase/migrations/          # 12 migraciones idempotentes (tablas, triggers, RPC crear_venta, RLS)
 ├── src/
-│   ├── app/                          # Next.js App Router
-│   │   ├── (app)/                    # Protected routes
-│   │   ├── api/                      # API Routes
-│   │   ├── login/
-│   │   └── middleware.ts
+│   ├── app/
+│   │   ├── (app)/                # Rutas protegidas: dashboard, clientes, productos, ventas
+│   │   ├── (demo)/demo/          # Modo demo de solo lectura (datos en memoria)
+│   │   ├── api/                  # Login y health check
+│   │   └── login/
+│   ├── actions/                  # Server Actions (verifican sesión → caso de uso → redirect)
+│   ├── services/                 # Casos de uso (Command): RegistrarVenta, RegistrarPago, GuardarCliente…
+│   ├── domain/errors.ts          # Errores de dominio con código y mensaje para el usuario
+│   ├── repositories/
+│   │   ├── supabase/             # Acceso a datos + Adapter de errores de Postgres
+│   │   ├── cached/               # Decorators con caché
+│   │   ├── memory/               # Implementación en memoria para la demo
+│   │   └── container.ts          # Abstract Factory: getRepositories('real' | 'demo')
+│   ├── components/
+│   │   ├── ui/                   # Button, Input, Table, Badge, Alert…
+│   │   ├── vistas/               # Vistas compartidas por la app y la demo
+│   │   ├── formularios/          # Formularios con useActionState
+│   │   └── layout/               # Barra de navegación
 │   ├── lib/
-│   │   ├── cache/                    # 🚀 Cache service (NEW)
-│   │   │   ├── cacheKeys.ts
-│   │   │   ├── cacheService.ts
-│   │   │   ├── redis.ts
-│   │   │   └── index.ts
-│   │   └── supabase/
-│   ├── modules/                      # Feature modules
-│   │   ├── clientes/
-│   │   ├── productos/
-│   │   ├── ventas/
-│   │   ├── fiados/
-│   │   ├── pagos/
-│   │   └── dashboard/
-│   ├── repositories/                 # Data access + cache
-│   ├── components/                   # Reusable UI
-│   └── types/
-├── docs/                             # 📖 Documentación técnica (NEW)
-├── .env.example                      # Ejemplo de variables (UPDATED)
-└── package.json
+│   │   ├── cache/                # Redis / memoria + invalidación por evento (Mediator)
+│   │   ├── format.ts             # Lempiras (es-HN) y fechas en America/Tegucigalpa
+│   │   ├── result.ts             # Result<T> para operaciones que pueden fallar
+│   │   └── security/validators.ts
+│   └── middleware.ts             # Protección de rutas y sesión demo
+├── __tests__/                    # Pruebas (Jest + Testing Library)
+├── MORA_APP/                     # Módulo de créditos (entregable aparte)
+├── docs/                         # Documentación técnica y del capstone
+└── public/                       # Presentación, manifest, service worker e íconos
 ```
 
 ---

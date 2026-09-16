@@ -129,7 +129,7 @@ describe('supabase helpers', () => {
     ).not.toThrow()
   })
 
-  it('returns the current user and supports redirect/sign-out helpers', async () => {
+  it('returns the current user and supports the session guard and sign-out', async () => {
     // Arrange
     const mockSupabase = {
       auth: {
@@ -143,18 +143,18 @@ describe('supabase helpers', () => {
     }))
 
     // Act
-    const { getUser, getUserOrRedirect, signOut } = await import('@/lib/supabase/server-utils')
+    const { getUser, exigirSesion, signOut } = await import('@/lib/supabase/server-utils')
     const user = await getUser()
-    const redirectedUser = await getUserOrRedirect()
+    const sessionUser = await exigirSesion()
     await signOut()
 
     // Assert
     expect(user).toEqual({ id: 'user-1' })
-    expect(redirectedUser).toEqual({ id: 'user-1' })
+    expect(sessionUser).toEqual({ id: 'user-1' })
     expect(mockSupabase.auth.signOut).toHaveBeenCalled()
   })
 
-  it('throws from getUserOrRedirect when there is no session', async () => {
+  it('redirects to login from exigirSesion when there is no session', async () => {
     // Arrange
     jest.doMock('@/lib/supabase/server', () => ({
       createClient: jest.fn().mockResolvedValue({
@@ -165,10 +165,16 @@ describe('supabase helpers', () => {
       }),
     }))
 
+    jest.doMock('next/navigation', () => ({
+      redirect: jest.fn((url: string) => {
+        throw new Error(`NEXT_REDIRECT:${url}`)
+      }),
+    }))
+
     // Act
-    const { getUserOrRedirect } = await import('@/lib/supabase/server-utils')
+    const { exigirSesion } = await import('@/lib/supabase/server-utils')
 
     // Assert
-    await expect(getUserOrRedirect()).rejects.toThrow('Not authenticated')
+    await expect(exigirSesion()).rejects.toThrow('NEXT_REDIRECT:/login')
   })
 })

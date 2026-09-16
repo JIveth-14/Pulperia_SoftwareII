@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fafafa" />
+    <title>Sin conexión · Pulpería</title>
+    <link rel="icon" href="/favicon.svg" />
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        padding: 16px; background: #fafafa; color: #18181b;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      main { width: 100%; max-width: 380px; padding: 32px 24px; text-align: center; background: #fff; border: 1px solid #e4e4e7; border-radius: 8px; }
+      h1 { margin: 0; font-size: 18px; font-weight: 600; }
+      p { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: #71717a; }
+      button {
+        margin-top: 24px; padding: 8px 16px; font: inherit; font-size: 14px; font-weight: 500;
+        color: #fff; background: #18181b; border: 0; border-radius: 6px; cursor: pointer;
+      }
+      button:hover { background: #3f3f46; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Sin conexión a internet</h1>
+      <p>Pulpería necesita conexión para mostrar y guardar tus datos. Revisa tu red e intenta de nuevo.</p>
+      <button type="button" onclick="location.reload()">Reintentar</button>
+    </main>
+  </body>
+</html>

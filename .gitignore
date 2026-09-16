@@ -35,7 +35,6 @@ Thumbs.db
 .env
 .env*.local
 .env.example
-legacy/expo/.env.example
 
 # vercel
 .vercel

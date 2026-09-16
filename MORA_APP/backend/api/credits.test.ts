@@ -543,8 +543,6 @@ describe('handler', () => {
       query: {}
     };
 
-    (getCredits as jest.Mock) = jest.fn();
-
     // Act
     await handler(mockReq as NextApiRequest, mockRes as NextApiResponse);
 

@@ -16,7 +16,6 @@ const config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
-  testPathIgnorePatterns: ['<rootDir>/legacy/'],
   collectCoverageFrom: [
     'src/middleware.ts',
     'src/app/api/**/*.{js,jsx,ts,tsx}',
