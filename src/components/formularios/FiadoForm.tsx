@@ -5,14 +5,16 @@ import { useActionState } from 'react';
 import { Input, buttonClass } from '@/components/ui';
 import { ESTADO_INICIAL } from '@/lib/formulario';
 import { BotonEnviar } from './BotonEnviar';
+import { useEnvioSinReinicio } from './useEnvioSinReinicio';
 import { ErrorFormulario } from './ErrorFormulario';
 import type { AccionFormulario } from './tipos';
 
 export function FiadoForm({ accion, cancelarHref }: { accion: AccionFormulario; cancelarHref: string }) {
-  const [estado, enviar] = useActionState(accion, ESTADO_INICIAL);
+  const [estado, enviar, enviando] = useActionState(accion, ESTADO_INICIAL);
+  const alEnviar = useEnvioSinReinicio(enviar);
 
   return (
-    <form action={enviar} className="space-y-4" noValidate>
+    <form onSubmit={alEnviar} className="space-y-4" noValidate>
       <ErrorFormulario estado={estado} />
 
       <Input
@@ -38,7 +40,7 @@ export function FiadoForm({ accion, cancelarHref }: { accion: AccionFormulario; 
         <Link href={cancelarHref} className={buttonClass('secondary')}>
           Cancelar
         </Link>
-        <BotonEnviar>Registrar fiado</BotonEnviar>
+        <BotonEnviar pendiente={enviando}>Registrar fiado</BotonEnviar>
       </div>
     </form>
   );

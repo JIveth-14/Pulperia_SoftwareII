@@ -3,6 +3,8 @@ import { ClientesView, DashboardView, ProductosView, VentasView, cargarDashboard
 import { createDemoRepositories, getRepositories } from '@/repositories/container'
 import { InMemoryClienteRepository } from '@/repositories/memory'
 
+jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }))
+
 describe('vistas compartidas entre app y demo', () => {
   it('la demo se construye con la factory en modo demo', async () => {
     const repos = await getRepositories('demo')

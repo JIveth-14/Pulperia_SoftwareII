@@ -86,7 +86,7 @@ export function DashboardView({ datos, modo = 'real' }: { datos: DatosDashboard;
           </THead>
           <TBody>
             {ultimas.map((v) => (
-              <Tr key={v.id}>
+              <Tr key={v.id} href={esDemo(modo) ? undefined : `/ventas/${v.id}`}>
                 <Td className="whitespace-nowrap tabular-nums text-text-secondary">{formatTime(v.fecha)}</Td>
                 <Td>
                   {esDemo(modo) ? (

@@ -6,6 +6,7 @@ import type { Cliente } from '@/types';
 import { Input, buttonClass } from '@/components/ui';
 import { ESTADO_INICIAL } from '@/lib/formulario';
 import { BotonEnviar } from './BotonEnviar';
+import { useEnvioSinReinicio } from './useEnvioSinReinicio';
 import { ErrorFormulario } from './ErrorFormulario';
 import type { AccionFormulario } from './tipos';
 
@@ -16,12 +17,13 @@ interface ClienteFormProps {
 }
 
 export function ClienteForm({ accion, cliente, cancelarHref }: ClienteFormProps) {
-  const [estado, enviar] = useActionState(accion, ESTADO_INICIAL);
+  const [estado, enviar, enviando] = useActionState(accion, ESTADO_INICIAL);
+  const alEnviar = useEnvioSinReinicio(enviar);
   const valor = (campo: 'nombre' | 'telefono' | 'direccion') =>
     estado.valores?.[campo] ?? cliente?.[campo] ?? '';
 
   return (
-    <form action={enviar} className="space-y-4" noValidate>
+    <form onSubmit={alEnviar} className="space-y-4" noValidate>
       <ErrorFormulario estado={estado} />
 
       <Input
@@ -60,7 +62,7 @@ export function ClienteForm({ accion, cliente, cancelarHref }: ClienteFormProps)
         <Link href={cancelarHref} className={buttonClass('secondary')}>
           Cancelar
         </Link>
-        <BotonEnviar>{cliente ? 'Guardar cambios' : 'Registrar cliente'}</BotonEnviar>
+        <BotonEnviar pendiente={enviando}>{cliente ? 'Guardar cambios' : 'Registrar cliente'}</BotonEnviar>
       </div>
     </form>
   );

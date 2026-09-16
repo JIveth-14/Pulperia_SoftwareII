@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
 import { StockBajo, esCritico, nivelStock } from '@/components/productos/StockBajo'
 
+jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }))
+
 const producto = (id: number, nombre: string, stock: number, stock_minimo: number) => ({
   id,
   nombre,

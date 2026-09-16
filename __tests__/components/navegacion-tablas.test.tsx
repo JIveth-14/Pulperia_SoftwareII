@@ -5,7 +5,7 @@ import { ClientesView, ProductosView, VentasView } from '@/components/vistas'
 import { createDemoRepositories } from '@/repositories/container'
 
 let mockPathname = '/clientes/4'
-jest.mock('next/navigation', () => ({ usePathname: () => mockPathname }))
+jest.mock('next/navigation', () => ({ usePathname: () => mockPathname, useRouter: () => ({ push: jest.fn() }) }))
 
 const ITEMS = [
   { href: '/dashboard', label: 'Dashboard' },

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FilaEnlace } from './FilaEnlace';
 
 type Alineacion = 'left' | 'right';
 
@@ -59,24 +60,32 @@ export function Td({ children, align, ocultarEnMovil, className = '' }: CeldaPro
 }
 
 /**
- * Fila de tabla. Con `href`, toda la fila es clicable: el enlace va en la
- * primera celda (accesible y con foco) y se estira sobre la fila.
+ * Fila de tabla. Con `href`, toda la fila abre ese enlace (ver `FilaEnlace`).
  */
-export function Tr({ children, destacada = false }: { children: React.ReactNode; destacada?: boolean }) {
-  return (
-    <tr className={`relative transition-colors hover:bg-muted/60 ${destacada ? 'bg-danger-soft/40' : ''}`}>
-      {children}
-    </tr>
-  );
+export function Tr({
+  children,
+  destacada = false,
+  href,
+}: {
+  children: React.ReactNode;
+  destacada?: boolean;
+  href?: string;
+}) {
+  const clases = `transition-colors hover:bg-muted/60 ${destacada ? 'bg-danger-soft/40' : ''}`;
+  if (href) {
+    return (
+      <FilaEnlace href={href} className={clases}>
+        {children}
+      </FilaEnlace>
+    );
+  }
+  return <tr className={clases}>{children}</tr>;
 }
 
-/** Enlace que cubre toda la fila (`Tr` es `relative`). */
+/** Enlace principal de una fila (accesible con teclado y lector de pantalla). */
 export function EnlaceFila({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <Link
-      href={href}
-      className="font-medium text-text after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded focus-visible:after:ring-2 focus-visible:after:ring-primary"
-    >
+    <Link href={href} className="font-medium text-text underline-offset-4 hover:underline">
       {children}
     </Link>
   );

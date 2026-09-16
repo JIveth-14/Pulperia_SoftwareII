@@ -53,3 +53,45 @@ describe('validadores de formularios', () => {
     expect(valores.precio).toBe(10)
   })
 })
+
+describe('validadores base', () => {
+  const v = require('@/lib/security/validators')
+
+  it('email: normaliza y rechaza formatos inválidos', () => {
+    expect(v.validateEmail('  Ana@Pulperia.HN ')).toBe('ana@pulperia.hn')
+    expect(() => v.validateEmail(5)).toThrow('Email requerido')
+    expect(() => v.validateEmail('   ')).toThrow('vacío')
+    expect(() => v.validateEmail('a'.repeat(250) + '@x.hn')).toThrow('muy largo')
+    expect(() => v.validateEmail('sin-arroba')).toThrow('Formato')
+  })
+
+  it('contraseña: longitud mínima y máxima', () => {
+    expect(v.validatePassword('Segura2026!')).toBe('Segura2026!')
+    expect(() => v.validatePassword(null)).toThrow('requerida')
+    expect(() => v.validatePassword('')).toThrow('vacía')
+    expect(() => v.validatePassword('corta')).toThrow('mínimo 8')
+    expect(() => v.validatePassword('x'.repeat(129))).toThrow('muy larga')
+  })
+
+  it('nombre, monto y dirección: tipos y límites', () => {
+    expect(() => v.validateNombre(3)).toThrow('Nombre requerido')
+    expect(() => v.validateNombre('A')).toThrow('muy corto')
+    expect(() => v.validateNombre('x'.repeat(151))).toThrow('muy largo')
+    expect(() => v.validatePhoneNumber(98765432)).toThrow('Teléfono requerido')
+    expect(() => v.validateMontoPositivo({})).toThrow('debe ser un número')
+    expect(() => v.validateMontoPositivo('abc')).toThrow('Monto inválido')
+    expect(() => v.validateMontoPositivo(1_000_000)).toThrow('demasiado grande')
+    expect(() => v.validateDireccion(1)).toThrow('debe ser texto')
+    expect(() => v.validateDireccion('x'.repeat(301))).toThrow('muy larga')
+    expect(() => v.validatePrecio(1_000_000)).toThrow('demasiado grande')
+  })
+
+  it('validarCampos usa un mensaje genérico para errores inesperados', () => {
+    const { errores } = v.validarCampos({
+      campo: () => {
+        throw new Error('boom')
+      },
+    })
+    expect(errores).toEqual({ campo: 'Valor inválido' })
+  })
+})
