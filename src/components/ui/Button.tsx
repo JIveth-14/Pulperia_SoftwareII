@@ -2,7 +2,7 @@ import React from 'react';
 
 interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: 'primary' | 'secondary' | 'danger' | 'dangerOutline';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   fullWidth?: boolean;
@@ -14,6 +14,7 @@ const variantStyles = {
   secondary:
     'border border-border-strong bg-surface text-text hover:bg-muted',
   danger: 'bg-danger text-white hover:bg-danger-hover',
+  dangerOutline: 'border border-danger/30 bg-surface text-danger hover:bg-danger-soft',
 };
 
 const sizeStyles = {

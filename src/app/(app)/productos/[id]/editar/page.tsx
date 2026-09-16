@@ -1,5 +1,8 @@
-import { PageHeader } from '@/components/ui';
-import { parseIdOrNotFound } from '@/lib/params';
+import { Card, PageHeader } from '@/components/ui';
+import { EliminarRegistro, ProductoForm } from '@/components/formularios';
+import { actualizarProducto, eliminarProducto } from '@/actions/productos';
+import { getRepositories } from '@/repositories/container';
+import { oNotFound, parseIdOrNotFound } from '@/lib/params';
 
 export default async function EditarProductoPage({
   params,
@@ -8,18 +11,24 @@ export default async function EditarProductoPage({
 }) {
   const { id: rawId } = await params;
   const id = parseIdOrNotFound(rawId);
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`Editar producto #${id}`}
-        backHref="/productos"
-      />
+  const repos = await getRepositories();
+  const producto = await oNotFound(repos.productos.getById(id));
 
-      <div className="rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
-        <p className="text-sm text-text-secondary">
-          Formulario de edición (se implementará en próximas fases)
-        </p>
-      </div>
+  return (
+    <div className="mx-auto max-w-xl space-y-6">
+      <PageHeader title="Editar producto" description={producto.nombre} backHref="/productos" />
+      <Card>
+        <ProductoForm
+          accion={actualizarProducto.bind(null, id)}
+          producto={producto}
+          cancelarHref="/productos"
+        />
+      </Card>
+      <EliminarRegistro
+        accion={eliminarProducto.bind(null, id)}
+        entidad="producto"
+        advertencia="Solo se puede eliminar si nunca se ha vendido. Si ya tiene ventas, deja su stock en 0."
+      />
     </div>
   );
 }

@@ -9,4 +9,5 @@ export { MetricCard } from './MetricCard';
 export type { MetricTone } from './MetricCard';
 export { PageHeader } from './PageHeader';
 export { Alert } from './Alert';
+export { Select } from './Select';
 export type { AlertTone } from './Alert';

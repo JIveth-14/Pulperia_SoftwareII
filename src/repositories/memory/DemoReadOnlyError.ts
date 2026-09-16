@@ -1,3 +1,5 @@
+import { DomainError } from '../../domain/errors';
+
 /**
  * Error lanzado cuando se intenta una mutación en el modo demo.
  *
@@ -7,9 +9,9 @@
  * profundidad): aunque una página futura llame a una mutación por error, nunca
  * se altera el estado demo.
  */
-export class DemoReadOnlyError extends Error {
+export class DemoReadOnlyError extends DomainError {
   constructor(operacion: string) {
-    super(`Operación no permitida en modo demo (solo lectura): ${operacion}`);
+    super('DEMO_SOLO_LECTURA', `Operación no permitida en modo demo (solo lectura): ${operacion}`);
     this.name = 'DemoReadOnlyError';
   }
 }

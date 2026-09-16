@@ -1,6 +1,8 @@
 import Link from 'next/link';
-import { PageHeader, buttonClass } from '@/components/ui';
-import { parseIdOrNotFound } from '@/lib/params';
+import { EmptyState, PageHeader, buttonClass } from '@/components/ui';
+import { getRepositories } from '@/repositories/container';
+import { oNotFound, parseIdOrNotFound } from '@/lib/params';
+import { formatDateTime, formatMoney } from '@/lib/format';
 
 export default async function HistorialPagosPage({
   params,
@@ -9,23 +11,52 @@ export default async function HistorialPagosPage({
 }) {
   const { id: rawId } = await params;
   const id = parseIdOrNotFound(rawId);
+  const repos = await getRepositories();
+  const [cliente, pagos] = await Promise.all([
+    oNotFound(repos.clientes.getById(id)),
+    repos.pagos.getByCliente(id),
+  ]);
+  const totalPagado = pagos.reduce((sum, p) => sum + Number(p.monto_pagado), 0);
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Historial de pagos - Cliente #${id}`}
+        title="Historial de pagos"
+        description={`${cliente.nombre} · ${pagos.length} pago${pagos.length === 1 ? '' : 's'} · ${formatMoney(totalPagado)} abonados`}
         backHref={`/clientes/${id}`}
         actions={
           <Link href={`/clientes/${id}/pagos/nuevo`} className={buttonClass('primary')}>
-            Nuevo pago
+            Registrar pago
           </Link>
         }
       />
 
-      <div className="rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
-        <p className="text-sm text-text-secondary">
-          Lista de pagos (se implementará en próximas fases)
-        </p>
-      </div>
+      {pagos.length === 0 ? (
+        <EmptyState title="Sin pagos" message="Este cliente todavía no ha hecho abonos." />
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs text-text-secondary">
+                <th scope="col" className="px-5 py-2.5 font-medium">Fecha</th>
+                <th scope="col" className="px-5 py-2.5 font-medium">Deuda</th>
+                <th scope="col" className="px-5 py-2.5 text-right font-medium">Monto</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {pagos.map((pago) => (
+                <tr key={pago.id}>
+                  <td className="whitespace-nowrap px-5 py-3 text-text">{formatDateTime(pago.fecha_pago)}</td>
+                  <td className="px-5 py-3 text-text-secondary">#{pago.fiado_id}</td>
+                  <td className="px-5 py-3 text-right font-medium tabular-nums text-success">
+                    {formatMoney(pago.monto_pagado)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

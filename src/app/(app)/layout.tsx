@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic';
 import { getUser } from '@/lib/supabase/server-utils';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { AvisoExito } from '@/components/formularios';
 
 export default async function AppLayout({
   children,
@@ -39,6 +41,11 @@ export default async function AppLayout({
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {children}
       </main>
+
+      {/* Toast de éxito tras las Server Actions (?exito=...). */}
+      <Suspense>
+        <AvisoExito />
+      </Suspense>
     </div>
   );
 }

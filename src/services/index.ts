@@ -1,0 +1,13 @@
+export type { CasoDeUso } from './CasoDeUso';
+export { RegistrarVenta } from './RegistrarVenta';
+export type { RegistrarVentaEntrada } from './RegistrarVenta';
+export { RegistrarPago } from './RegistrarPago';
+export type { RegistrarPagoEntrada } from './RegistrarPago';
+export { RegistrarFiado } from './RegistrarFiado';
+export type { RegistrarFiadoEntrada } from './RegistrarFiado';
+export { GuardarCliente } from './GuardarCliente';
+export type { GuardarClienteEntrada } from './GuardarCliente';
+export { EliminarCliente } from './EliminarCliente';
+export { GuardarProducto } from './GuardarProducto';
+export type { GuardarProductoEntrada } from './GuardarProducto';
+export { EliminarProducto } from './EliminarProducto';

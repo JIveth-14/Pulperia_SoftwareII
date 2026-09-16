@@ -15,6 +15,7 @@ export function Input({
   ...props
 }: InputProps) {
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+  const errorId = error ? `${inputId}-error` : undefined;
 
   return (
     <div className={fullWidth ? 'w-full' : ''}>
@@ -28,6 +29,8 @@ export function Input({
       )}
       <input
         id={inputId}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={errorId}
         className={`
           w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm
           text-text placeholder:text-text-secondary
@@ -39,7 +42,7 @@ export function Input({
         {...props}
       />
       {error && (
-        <p className="mt-1 text-sm text-danger">{error}</p>
+        <p id={errorId} className="mt-1 text-sm text-danger">{error}</p>
       )}
     </div>
   );

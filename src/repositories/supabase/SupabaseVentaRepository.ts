@@ -1,169 +1,154 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { LineaVentaInput, TipoPago, Venta, VentaConDetalle } from '../../types';
 import type { VentaRepository } from '../VentaRepository';
-import { SupabaseProductoRepository } from './SupabaseProductoRepository';
-import { SupabaseFiadoRepository } from './SupabaseFiadoRepository';
-import { getCacheOrFetch, deleteCacheKeys, getCacheTTL, CACHE_KEYS } from '../../lib/cache';
 import { rangoDelDia } from '../../lib/dates';
+import { lanzarSiError } from './errores';
+
+/** Códigos con los que PostgREST/Postgres indican que la función RPC no existe. */
+const RPC_NO_INSTALADO = new Set(['PGRST202', '42883']);
 
 export class SupabaseVentaRepository implements VentaRepository {
-  private productos: SupabaseProductoRepository;
-  private fiados: SupabaseFiadoRepository;
-
-  constructor(private supabase: SupabaseClient) {
-    this.productos = new SupabaseProductoRepository(supabase);
-    this.fiados = new SupabaseFiadoRepository(supabase);
-  }
+  constructor(private supabase: SupabaseClient) {}
 
   async getAll(): Promise<Venta[]> {
-    const ttl = getCacheTTL('SALES');
-    return getCacheOrFetch(CACHE_KEYS.VENTAS_LIST, async () => {
-      const { data, error } = await this.supabase
-        .from('ventas')
-        .select('*')
-        .order('fecha', { ascending: false });
-      if (error) throw new Error(error.message);
-      return data as Venta[];
-    }, ttl);
+    const { data, error } = await this.supabase
+      .from('ventas')
+      .select('*')
+      .order('fecha', { ascending: false });
+    lanzarSiError(error, { entidad: 'Venta' });
+    return data as Venta[];
   }
 
   async getDelDia(): Promise<Venta[]> {
-    const ttl = getCacheTTL('SALES', 120); // Shorter TTL for today's sales
-    return getCacheOrFetch(CACHE_KEYS.VENTAS_TODAY, async () => {
-      // Día calendario de Honduras, no del servidor (UTC en Vercel).
-      const { inicio, fin } = rangoDelDia();
-      const { data, error } = await this.supabase
-        .from('ventas')
-        .select('*')
-        .gte('fecha', inicio)
-        .lt('fecha', fin);
-      if (error) throw new Error(error.message);
-      return data as Venta[];
-    }, ttl);
+    // Día calendario de Honduras, no del servidor (UTC en Vercel).
+    const { inicio, fin } = rangoDelDia();
+    const { data, error } = await this.supabase
+      .from('ventas')
+      .select('*')
+      .gte('fecha', inicio)
+      .lt('fecha', fin);
+    lanzarSiError(error, { entidad: 'Venta' });
+    return data as Venta[];
   }
 
   async getConDetalle(id: number): Promise<VentaConDetalle> {
-    const ttl = getCacheTTL('SALES');
-    return getCacheOrFetch(CACHE_KEYS.VENTA(id), async () => {
-      const { data, error } = await this.supabase
-        .from('ventas')
-        .select('*, detalle_venta(*, productos(*)), clientes(id, nombre, telefono)')
-        .eq('id', id)
-        .single();
-      if (error) throw new Error(error.message);
-      const v = data as any;
-      return {
-        id: v.id,
-        cliente_id: v.cliente_id ?? null,
-        tipo_pago: v.tipo_pago ?? 'contado',
-        total: v.total,
-        fecha: v.fecha,
-        created_at: v.created_at,
-        detalles: v.detalle_venta.map((d: any) => ({ ...d, producto: d.productos })),
-        cliente: v.clientes ?? undefined,
-      };
-    }, ttl);
+    const { data, error } = await this.supabase
+      .from('ventas')
+      .select('*, detalle_venta(*, productos(*)), clientes(id, nombre, telefono)')
+      .eq('id', id)
+      .single();
+    lanzarSiError(error, { entidad: 'Venta', id });
+
+    const { detalle_venta, clientes, ...venta } = data as Venta & {
+      detalle_venta: (VentaConDetalle['detalles'][number] & { productos?: VentaConDetalle['detalles'][number]['producto'] })[];
+      clientes: VentaConDetalle['cliente'] | null;
+    };
+    return {
+      ...venta,
+      cliente_id: venta.cliente_id ?? null,
+      tipo_pago: venta.tipo_pago ?? 'contado',
+      detalles: detalle_venta.map(({ productos, ...d }) => ({ ...d, producto: productos })),
+      cliente: clientes ?? undefined,
+    };
   }
 
+  /**
+   * Crea la venta en una sola transacción con el RPC `crear_venta`
+   * (valida stock, inserta cabecera y líneas, descuenta stock y crea el
+   * fiado si corresponde). Si todo falla, no queda nada a medias.
+   */
   async create(
     lineas: LineaVentaInput[],
     clienteId?: number,
     tipoPago: TipoPago = 'contado'
   ): Promise<Venta> {
-    // 1. Validar stock client-side
-    for (const linea of lineas) {
-      const p = await this.productos.getById(linea.producto_id);
-      if (p.stock < linea.cantidad) {
-        throw new Error(`Stock insuficiente para "${p.nombre}" (disponible: ${p.stock})`);
-      }
-    }
+    const { data, error } = await this.supabase.rpc('crear_venta', {
+      p_lineas: lineas,
+      p_cliente_id: clienteId ?? null,
+      p_tipo_pago: tipoPago,
+    });
 
-    // 2. Crear cabecera
+    if (error && RPC_NO_INSTALADO.has(error.code)) {
+      console.warn(
+        '[Ventas] RPC crear_venta no instalado; usando inserción no atómica. ' +
+          'Aplica supabase/migrations/20250903000008_create_rpc.sql.'
+      );
+      return this.createSinRpc(lineas, clienteId, tipoPago);
+    }
+    lanzarSiError(error, { entidad: 'Venta' });
+
+    const fila = (Array.isArray(data) ? data[0] : data) as { venta_id: number } | null;
+    if (!fila) {
+      throw new Error('crear_venta no devolvió la venta creada');
+    }
+    return this.getVenta(fila.venta_id);
+  }
+
+  private async getVenta(id: number): Promise<Venta> {
+    const { data, error } = await this.supabase
+      .from('ventas')
+      .select('*')
+      .eq('id', id)
+      .single();
+    lanzarSiError(error, { entidad: 'Venta', id });
+    return data as Venta;
+  }
+
+  /**
+   * Respaldo para bases sin el RPC instalado. No es atómico: si una línea
+   * falla, la cabecera ya existe. Los triggers de la BD siguen validando stock.
+   */
+  private async createSinRpc(
+    lineas: LineaVentaInput[],
+    clienteId: number | undefined,
+    tipoPago: TipoPago
+  ): Promise<Venta> {
+    const ids = [...new Set(lineas.map((l) => l.producto_id))];
+    const { data: productos, error: prodError } = await this.supabase
+      .from('productos')
+      .select('id, precio')
+      .in('id', ids);
+    lanzarSiError(prodError, { entidad: 'Producto' });
+    const precios = new Map((productos as { id: number; precio: number }[]).map((p) => [p.id, Number(p.precio)]));
+
     const { data: ventaData, error: ventaError } = await this.supabase
       .from('ventas')
       .insert({ total: 0, cliente_id: clienteId ?? null, tipo_pago: tipoPago })
       .select()
       .single();
-    if (ventaError) throw new Error(ventaError.message);
+    lanzarSiError(ventaError, { entidad: 'Venta' });
     const venta = ventaData as Venta;
 
-    // 3. Insertar líneas (los triggers de la BD descuentan stock y recalculan
-    // el total de la cabecera). Llevamos también el total en JS como respaldo,
-    // por si los triggers de supabase/functions.sql no llegaron a ejecutarse:
-    // así el monto del fiado nunca depende únicamente de la BD.
-    let totalCalculado = 0;
-    for (const linea of lineas) {
-      const p = await this.productos.getById(linea.producto_id);
-      const subtotal = Number(p.precio) * linea.cantidad;
-      totalCalculado += subtotal;
-      const { error } = await this.supabase.from('detalle_venta').insert({
+    const filas = lineas.map((l) => {
+      const precio = precios.get(l.producto_id) ?? 0;
+      return {
         venta_id: venta.id,
-        producto_id: linea.producto_id,
-        cantidad: linea.cantidad,
-        precio_unitario: p.precio,
-        subtotal,
-      });
-      if (error) throw new Error(error.message);
-    }
+        producto_id: l.producto_id,
+        cantidad: l.cantidad,
+        precio_unitario: precio,
+        subtotal: precio * l.cantidad,
+      };
+    });
+    const total = filas.reduce((sum, f) => sum + f.subtotal, 0);
 
-    // 4. Leer venta actualizada (el trigger debería haber calculado el total).
-    const { data: updated, error: upError } = await this.supabase
+    const { error: detError } = await this.supabase.from('detalle_venta').insert(filas);
+    lanzarSiError(detError, { entidad: 'Venta' });
+
+    const { data: final, error: upError } = await this.supabase
       .from('ventas')
-      .select('*')
+      .update({ total })
       .eq('id', venta.id)
+      .select()
       .single();
-    if (upError) throw new Error(upError.message);
-    let ventaFinal = updated as Venta;
+    lanzarSiError(upError, { entidad: 'Venta', id: venta.id });
 
-    // Si el total en BD no coincide con el calculado en JS, el trigger
-    // trg_recalcular_total_venta probablemente no está instalado: lo
-    // corregimos aquí para no dejar la venta con total L 0.00.
-    if (Number(ventaFinal.total) !== totalCalculado) {
-      const { data: fixed, error: fixError } = await this.supabase
-        .from('ventas')
-        .update({ total: totalCalculado })
-        .eq('id', venta.id)
-        .select()
-        .single();
-      if (!fixError && fixed) ventaFinal = fixed as Venta;
-    }
-
-    // 5. Si es fiado, crear el fiado automáticamente con el total calculado
-    // (nunca con el valor leído de la BD, para no chocar con el CHECK
-    // monto_total > 0 si el total quedó en 0 por falta de triggers).
     if (tipoPago === 'fiado' && clienteId) {
-      await this.fiados.create({
-        cliente_id: clienteId,
-        monto_total: totalCalculado,
-      });
+      const { error: fiadoError } = await this.supabase
+        .from('fiados')
+        .insert({ cliente_id: clienteId, monto_total: total, saldo_pendiente: total, estado: 'pendiente' });
+      lanzarSiError(fiadoError, { entidad: 'Fiado' });
     }
 
-    // Invalidate caches
-    await this.invalidateVentaCaches(
-      lineas.map((l) => l.producto_id),
-      clienteId || undefined
-    );
-
-    return ventaFinal;
-  }
-
-  private async invalidateVentaCaches(productoIds: number[], clienteId?: number): Promise<void> {
-    const keysToInvalidate = [
-      CACHE_KEYS.VENTAS_LIST,
-      CACHE_KEYS.VENTAS_TODAY,
-      CACHE_KEYS.PRODUCTS_LIST,
-      CACHE_KEYS.PRODUCTS_LOW_STOCK,
-      CACHE_KEYS.PRODUCTS_BY_STOCK,
-      CACHE_KEYS.DASHBOARD_SUMMARY,
-      CACHE_KEYS.DASHBOARD_STATS,
-      // El stock de cada producto vendido cambió (lo descuenta el trigger).
-      ...[...new Set(productoIds)].map((id) => CACHE_KEYS.PRODUCT(id)),
-    ];
-
-    if (clienteId) {
-      keysToInvalidate.push(CACHE_KEYS.VENTAS_BY_CLIENT(clienteId));
-    }
-
-    await deleteCacheKeys(keysToInvalidate);
+    return final as Venta;
   }
 }

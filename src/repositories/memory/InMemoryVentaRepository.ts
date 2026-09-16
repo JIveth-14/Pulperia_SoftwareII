@@ -7,6 +7,7 @@ import {
   DEMO_CLIENTES,
 } from '../../lib/demo/demo-data';
 import { DemoReadOnlyError } from './DemoReadOnlyError';
+import { NoEncontradoError } from '../../domain/errors';
 import { esDelDia } from '../../lib/dates';
 
 /**
@@ -23,7 +24,7 @@ export class InMemoryVentaRepository implements VentaRepository {
 
   async getConDetalle(id: number): Promise<VentaConDetalle> {
     const venta = DEMO_VENTAS.find((v) => v.id === id);
-    if (!venta) throw new Error(`Venta ${id} no encontrada`);
+    if (!venta) throw new NoEncontradoError('Venta', id);
 
     const detalles = DEMO_DETALLE_VENTA
       .filter((d) => d.venta_id === id)
