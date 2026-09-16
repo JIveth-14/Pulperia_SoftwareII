@@ -1,42 +1,24 @@
 {
   "name": "Pulpería - Gestión de Negocio",
   "short_name": "Pulpería",
-  "description": "Sistema integral para gestionar inventario, ventas, clientes y créditos",
-  "start_url": "/",
+  "description": "Gestiona clientes, inventario, fiados y ventas de tu pulpería",
+  "lang": "es-HN",
+  "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "theme_color": "#4F46E5",
-  "background_color": "#FFFFFF",
-  "icons": [
-    {
-      "src": "/favicon.ico",
-      "sizes": "32x32",
-      "type": "image/x-icon"
-    }
-  ],
+  "orientation": "any",
+  "theme_color": "#fafafa",
+  "background_color": "#fafafa",
   "categories": ["business", "productivity"],
-  "screenshots": [
-    {
-      "src": "/screenshot.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
-  "permissions": [],
   "shortcuts": [
-    {
-      "name": "Iniciar sesión",
-      "short_name": "Login",
-      "description": "Acceder a tu cuenta",
-      "url": "/login"
-    },
-    {
-      "name": "Dashboard",
-      "short_name": "Home",
-      "description": "Ver resumen del negocio",
-      "url": "/dashboard"
-    }
+    { "name": "Nueva venta", "short_name": "Vender", "url": "/ventas/nueva", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Clientes", "short_name": "Clientes", "url": "/clientes", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Productos", "short_name": "Productos", "url": "/productos", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

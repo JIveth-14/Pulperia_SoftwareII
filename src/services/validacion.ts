@@ -15,8 +15,3 @@ export function validarOLanzar<T extends Record<string, () => unknown>>(
   }
   return valores;
 }
-
-export function idValido(valor: unknown): number | null {
-  const id = Number(valor);
-  return Number.isSafeInteger(id) && id > 0 ? id : null;
-}

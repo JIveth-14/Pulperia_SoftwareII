@@ -1,14 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  webpack: (config) => {
-    config.ignoreWarnings = [
-      { module: /node_modules\/react-native/ },
-    ];
-    return config;
-  },
   async headers() {
     return [
+      {
+        // El service worker no debe quedar cacheado: así las actualizaciones llegan de inmediato.
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Service-Worker-Allowed', value: '/' },
+        ],
+      },
       {
         source: '/:path*',
         headers: [

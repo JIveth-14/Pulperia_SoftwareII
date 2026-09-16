@@ -135,6 +135,6 @@ jobs:
             echo "📊 View results: https://sonarcloud.io/projects/JIveth-14_Pulperia_SoftwareII"
           else
             echo "⚠️ SONAR_TOKEN not configured in GitHub Secrets"
-            echo "📖 Setup instructions: See SONARCLOUD_SETUP.md"
+            echo "📖 Setup instructions: See docs/SONARCLOUD_SETUP.md"
           fi
         if: always()
