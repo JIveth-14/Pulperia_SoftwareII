@@ -42,7 +42,9 @@ export async function getRedisClient(): Promise<RedisClientType | null> {
     const redisUrl = process.env.REDIS_URL;
 
     if (!redisUrl) {
-      console.warn('[Cache] REDIS_URL not configured. Cache is disabled.');
+      console.warn('[Cache] REDIS_URL not configured. Using in-memory cache.');
+      // Missing config won't fix itself at runtime: stop retrying (and warning).
+      connectionAttempts = MAX_CONNECTION_ATTEMPTS;
       isConnecting = false;
       return null;
     }

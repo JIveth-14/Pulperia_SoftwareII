@@ -4,6 +4,7 @@ import type { VentaRepository } from '../VentaRepository';
 import { SupabaseProductoRepository } from './SupabaseProductoRepository';
 import { SupabaseFiadoRepository } from './SupabaseFiadoRepository';
 import { getCacheOrFetch, deleteCacheKeys, getCacheTTL, CACHE_KEYS } from '../../lib/cache';
+import { rangoDelDia } from '../../lib/dates';
 
 export class SupabaseVentaRepository implements VentaRepository {
   private productos: SupabaseProductoRepository;
@@ -29,14 +30,13 @@ export class SupabaseVentaRepository implements VentaRepository {
   async getDelDia(): Promise<Venta[]> {
     const ttl = getCacheTTL('SALES', 120); // Shorter TTL for today's sales
     return getCacheOrFetch(CACHE_KEYS.VENTAS_TODAY, async () => {
-      const ahora = new Date();
-      const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()).toISOString();
-      const manana = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).toISOString();
+      // Día calendario de Honduras, no del servidor (UTC en Vercel).
+      const { inicio, fin } = rangoDelDia();
       const { data, error } = await this.supabase
         .from('ventas')
         .select('*')
         .gte('fecha', inicio)
-        .lt('fecha', manana);
+        .lt('fecha', fin);
       if (error) throw new Error(error.message);
       return data as Venta[];
     }, ttl);
@@ -139,18 +139,25 @@ export class SupabaseVentaRepository implements VentaRepository {
     }
 
     // Invalidate caches
-    await this.invalidateVentaCaches(clienteId || undefined);
+    await this.invalidateVentaCaches(
+      lineas.map((l) => l.producto_id),
+      clienteId || undefined
+    );
 
     return ventaFinal;
   }
 
-  private async invalidateVentaCaches(clienteId?: number): Promise<void> {
+  private async invalidateVentaCaches(productoIds: number[], clienteId?: number): Promise<void> {
     const keysToInvalidate = [
       CACHE_KEYS.VENTAS_LIST,
       CACHE_KEYS.VENTAS_TODAY,
       CACHE_KEYS.PRODUCTS_LIST,
       CACHE_KEYS.PRODUCTS_LOW_STOCK,
       CACHE_KEYS.PRODUCTS_BY_STOCK,
+      CACHE_KEYS.DASHBOARD_SUMMARY,
+      CACHE_KEYS.DASHBOARD_STATS,
+      // El stock de cada producto vendido cambió (lo descuenta el trigger).
+      ...[...new Set(productoIds)].map((id) => CACHE_KEYS.PRODUCT(id)),
     ];
 
     if (clienteId) {

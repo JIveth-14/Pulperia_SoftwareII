@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Cliente, ClienteConSaldo, NuevoCliente } from '../../types';
 import type { ClienteRepository } from '../ClienteRepository';
-import { getCacheOrFetch, deleteCacheKey, getCacheTTL, CACHE_KEYS } from '../../lib/cache';
+import { getCacheOrFetch, deleteCacheKeys, getCacheTTL, CACHE_KEYS } from '../../lib/cache';
 
 export class SupabaseClienteRepository implements ClienteRepository {
   constructor(private supabase: SupabaseClient) {}
@@ -102,16 +102,19 @@ export class SupabaseClienteRepository implements ClienteRepository {
   }
 
   private async invalidateClientCaches(id?: number): Promise<void> {
-    const { deleteCacheKey, deleteCacheKeys } = await import('../../lib/cache');
-
+    // buscar() no se cachea, así que no hay claves de búsqueda que limpiar.
     const keysToInvalidate = [
       CACHE_KEYS.CLIENTS_LIST,
       CACHE_KEYS.CLIENTS_WITH_BALANCE,
-      CACHE_KEYS.CLIENT_SEARCH(''), // This is a pattern, but we'll invalidate all
+      CACHE_KEYS.DASHBOARD_SUMMARY,
     ];
 
     if (id) {
-      keysToInvalidate.push(CACHE_KEYS.CLIENT(id));
+      keysToInvalidate.push(
+        CACHE_KEYS.CLIENT(id),
+        CACHE_KEYS.FIADOS_BY_CLIENT(id),
+        CACHE_KEYS.PAGOS_BY_CLIENT(id)
+      );
     }
 
     await deleteCacheKeys(keysToInvalidate);

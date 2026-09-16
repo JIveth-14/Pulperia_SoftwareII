@@ -34,6 +34,7 @@ export default async function VentasPage() {
             icon="🛒"
             title="Sin ventas"
             message="Comienza registrando tu primera venta"
+            action={{ label: 'Registrar venta', href: '/ventas/nueva' }}
           />
         ) : (
           <div className="grid gap-4">

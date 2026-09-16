@@ -50,6 +50,7 @@ export default async function ProductosPage() {
             icon="📦"
             title="Sin productos"
             message="Comienza registrando tu primer producto"
+            action={{ label: 'Crear producto', href: '/productos/nuevo' }}
           />
         ) : (
           <div className="grid gap-4">

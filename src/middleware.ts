@@ -1,6 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { getSupabaseEnv } from '@/lib/supabase/env'
 import { DEMO_COOKIE, isDemoPath } from '@/lib/demo/demo-config'
 
@@ -10,7 +9,8 @@ import { DEMO_COOKIE, isDemoPath } from '@/lib/demo/demo-config'
  * 1) MODO DEMO: si la ruta empieza por /demo, se maneja la sesión demo
  *    (cookie con expiración de 30 min) y se SALTA la autenticación real.
  *    Es el equivalente Next.js al `req.isDemoMode = true` de la spec original.
- * 2) Rutas protegidas: valida sesión Supabase y redirige a /login si falta.
+ * 2) Rutas protegidas (/dashboard, /clientes, /productos, /ventas): valida la
+ *    sesión Supabase, renueva sus cookies y redirige a /login si falta.
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -54,52 +54,70 @@ export async function middleware(request: NextRequest) {
   // ==========================================
   // 2) AUTENTICACIÓN REAL (Supabase)
   // ==========================================
+  // Patrón de @supabase/ssr para middleware: las cookies se leen del request y
+  // las renovadas se escriben en la response. Con `cookies()` de next/headers
+  // los tokens refrescados nunca llegaban al navegador.
+  let response = NextResponse.next({ request })
+  const protegida = isProtectedPath(pathname)
+
   try {
-    const cookieStore = await cookies()
     const { url, anonKey } = getSupabaseEnv()
 
     const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
     })
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Proteger rutas de (app) - requieren autenticación
-    if (request.nextUrl.pathname.startsWith('/(app)') || request.nextUrl.pathname.startsWith('/app/')) {
-      if (!user) {
-        return NextResponse.redirect(new URL('/login', request.url))
-      }
+    if (protegida && !user) {
+      return redirectKeepingCookies(request, response, '/login')
     }
 
-    // Redirigir a dashboard si usuario intenta ir a login ya autenticado
-    if (request.nextUrl.pathname === '/login' && user) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+    // Usuario autenticado que intenta ir a login -> dashboard
+    if (pathname === '/login' && user) {
+      return redirectKeepingCookies(request, response, '/dashboard')
     }
 
-    return NextResponse.next()
+    return response
   } catch {
-    // Si hay error de autenticación, redirigir a login
-    if (request.nextUrl.pathname.startsWith('/(app)') || request.nextUrl.pathname.startsWith('/app/')) {
+    // Si falla la verificación, una ruta privada nunca debe quedar abierta.
+    if (protegida) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
-    return NextResponse.next()
+    return response
   }
+}
+
+/** Prefijos de las rutas del grupo (app). Los grupos `(app)` no aparecen en la URL. */
+const PROTECTED_PREFIXES = ['/dashboard', '/clientes', '/productos', '/ventas']
+
+function isProtectedPath(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+}
+
+/** Redirige conservando las cookies de sesión que Supabase haya renovado. */
+function redirectKeepingCookies(request: NextRequest, from: NextResponse, path: string) {
+  const redirect = NextResponse.redirect(new URL(path, request.url))
+  from.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+  return redirect
 }
 
 export const config = {
   matcher: [
     '/demo/:path*',
-    '/(app)/:path*',
-    '/app/:path*',
     '/dashboard/:path*',
     '/clientes/:path*',
     '/productos/:path*',
