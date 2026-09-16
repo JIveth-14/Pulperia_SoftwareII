@@ -1,78 +1,65 @@
-describe('Formatters - Utility Functions', () => {
-  describe('formatCurrency', () => {
-    const formatCurrency = (value: number): string => {
-      return new Intl.NumberFormat('es-CR', {
-        style: 'currency',
-        currency: 'CRC',
-        minimumFractionDigits: 2,
-      }).format(value);
-    };
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  formatMoneySigned,
+  LOCALE,
+  MONEDA,
+} from '@/lib/format'
 
-    it('should format positive currency values correctly', () => {
-      const result = formatCurrency(1000);
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
-    });
+// Intl puede usar espacios no separables; se normalizan para comparar.
+const plain = (value: string) => value.replace(/[  ]/g, ' ')
 
-    it('should format zero correctly', () => {
-      const result = formatCurrency(0);
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
-    });
+describe('format (Lempira hondureño y hora de Honduras)', () => {
+  it('usa la configuración regional de Honduras', () => {
+    expect(LOCALE).toBe('es-HN')
+    expect(MONEDA).toBe('HNL')
+  })
 
-    it('should format decimal values', () => {
-      const result = formatCurrency(99.99);
-      expect(result).toContain('99');
-    });
-  });
+  describe('formatMoney', () => {
+    it('formatea montos en lempiras con dos decimales y separador de miles', () => {
+      expect(plain(formatMoney(1234.5))).toBe('L 1,234.50')
+      expect(plain(formatMoney(0))).toBe('L 0.00')
+    })
+
+    it('acepta los numeric que Supabase devuelve como string', () => {
+      expect(plain(formatMoney('80.456'))).toBe('L 80.46')
+    })
+
+    it('trata null, undefined y valores inválidos como cero', () => {
+      expect(plain(formatMoney(null))).toBe('L 0.00')
+      expect(plain(formatMoney(undefined))).toBe('L 0.00')
+      expect(plain(formatMoney('abc'))).toBe('L 0.00')
+    })
+  })
+
+  describe('formatMoneySigned', () => {
+    it('antepone + solo a montos positivos', () => {
+      expect(plain(formatMoneySigned(150))).toBe('+L 150.00')
+      expect(plain(formatMoneySigned(0))).toBe('L 0.00')
+    })
+  })
 
   describe('formatDate', () => {
-    const formatDate = (date: Date | string): string => {
-      const d = typeof date === 'string' ? new Date(date) : date;
-      return d.toLocaleDateString('es-CR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-    };
+    it('usa la fecha de Honduras aunque en UTC ya sea el día siguiente', () => {
+      // 17 sep 02:00 UTC = 16 sep 20:00 en Honduras
+      expect(plain(formatDate('2026-09-17T02:00:00Z'))).toMatch(/^16 sept? 2026$/)
+    })
 
-    it('should format date string correctly', () => {
-      const result = formatDate('2026-09-08');
-      expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}/);
-    });
+    it('devuelve el texto de respaldo para valores vacíos o inválidos', () => {
+      expect(formatDate(null)).toBe('Sin fecha')
+      expect(formatDate('no-es-fecha')).toBe('Sin fecha')
+      expect(formatDate(undefined, '—')).toBe('—')
+    })
+  })
 
-    it('should format Date object correctly', () => {
-      const date = new Date('2026-09-08');
-      const result = formatDate(date);
-      expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}/);
-    });
+  describe('formatDateTime', () => {
+    it('incluye la hora local de Honduras', () => {
+      expect(plain(formatDateTime('2026-09-16T18:30:00Z'))).toContain('12:30')
+    })
 
-    it('should handle valid dates', () => {
-      expect(() => formatDate('2026-01-01')).not.toThrow();
-    });
-  });
-
-  describe('truncateString', () => {
-    const truncateString = (str: string, length: number): string => {
-      return str.length > length ? str.slice(0, length) + '...' : str;
-    };
-
-    it('should not truncate strings shorter than limit', () => {
-      expect(truncateString('Pulpería', 20)).toBe('Pulpería');
-    });
-
-    it('should truncate strings longer than limit', () => {
-      expect(truncateString('Esta es una descripción muy larga', 10)).toBe(
-        'Esta es un...'
-      );
-    });
-
-    it('should handle empty strings', () => {
-      expect(truncateString('', 10)).toBe('');
-    });
-
-    it('should handle exact length match', () => {
-      expect(truncateString('Pulpería', 8)).toBe('Pulpería');
-    });
-  });
-});
+    it('devuelve el texto de respaldo para valores vacíos', () => {
+      expect(formatDateTime(null)).toBe('Sin fecha')
+    })
+  })
+})

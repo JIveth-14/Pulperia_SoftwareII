@@ -1,73 +1,63 @@
 import Link from 'next/link';
+import { buttonClass } from '@/components/ui';
+
+const FEATURES = [
+  {
+    title: 'Clientes y fiados',
+    description: 'Registra clientes, controla sus deudas y el historial de pagos.',
+  },
+  {
+    title: 'Inventario',
+    description: 'Controla tu stock y recibe alertas de productos por agotarse.',
+  },
+  {
+    title: 'Ventas',
+    description: 'Registra ventas de contado o al crédito y revisa el día de un vistazo.',
+  },
+];
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Navigation */}
-      <nav className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
-        <div className="text-2xl font-bold text-indigo-600">Pulpería</div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/demo/login"
-            className="px-6 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition"
-          >
+    <main className="flex min-h-screen flex-col bg-background">
+      <nav className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-5 sm:px-6">
+        <span className="text-sm font-semibold tracking-tight text-text">Pulpería</span>
+        <div className="flex items-center gap-2">
+          <Link href="/demo/login" className={buttonClass('secondary')}>
             Ver demo
           </Link>
-          <Link
-            href="/login"
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-          >
-            Inicia sesión
+          <Link href="/login" className={buttonClass('primary')}>
+            Iniciar sesión
           </Link>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-6">
-        <div className="text-center max-w-2xl">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Gestiona tu Pulpería
-            <span className="text-indigo-600"> con facilidad</span>
+      <section className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 py-20 sm:px-6">
+        <div className="max-w-2xl">
+          <h1 className="text-4xl font-semibold tracking-tight text-text sm:text-5xl">
+            Gestiona tu pulpería con facilidad
           </h1>
-
-          <p className="text-xl text-gray-600 mb-8">
-            Software todo-en-uno para administrar clientes, inventario, fiados y ventas.
-            La solución perfecta para tu negocio.
+          <p className="mt-4 text-lg text-text-secondary">
+            Clientes, inventario, fiados y ventas en un solo lugar.
           </p>
-
-          <Link
-            href="/login"
-            className="inline-block px-8 py-4 bg-indigo-600 text-white text-lg font-semibold rounded-lg hover:bg-indigo-700 transition shadow-lg"
-          >
-            Comenzar ahora
-          </Link>
-        </div>
-
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-8 mt-20 max-w-5xl w-full">
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">👥</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Gestión de Clientes</h3>
-            <p className="text-gray-600">Registra y controla tus clientes, fiados y historial de pagos.</p>
-          </div>
-
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">📦</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Inventario</h3>
-            <p className="text-gray-600">Controla tu stock, alertas de productos bajos y organiza tu inventario.</p>
-          </div>
-
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">💰</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Ventas</h3>
-            <p className="text-gray-600">Registra ventas, genera reportes y analiza tu desempeño.</p>
+          <div className="mt-8">
+            <Link href="/login" className={buttonClass('primary', 'lg')}>
+              Comenzar ahora
+            </Link>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <footer className="text-center py-8 text-gray-600 border-t border-gray-200">
-        <p>&copy; 2024 Pulpería. Todos los derechos reservados.</p>
+        <div className="mt-20 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
+          {FEATURES.map((feature) => (
+            <div key={feature.title} className="bg-surface p-6">
+              <h3 className="text-sm font-medium text-text">{feature.title}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <footer className="border-t border-border py-6 text-center text-sm text-text-secondary">
+        © {new Date().getFullYear()} Pulpería
       </footer>
     </main>
   );

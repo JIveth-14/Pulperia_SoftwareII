@@ -16,23 +16,23 @@ interface EmptyStateProps {
 }
 
 const actionClassName =
-  'px-4 py-2 rounded-md bg-primary text-white hover:bg-primary-light transition-colors';
+  'rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover';
 
 export function EmptyState({
-  icon = '📭',
+  icon,
   title,
   message,
   action,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="text-4xl mb-4">{icon}</div>
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
+      {icon && <div className="mb-3 text-2xl text-text-secondary">{icon}</div>}
       {title && (
-        <h3 className="text-lg font-semibold text-text mb-2">
+        <h3 className="mb-1 text-sm font-medium text-text">
           {title}
         </h3>
       )}
-      <p className="text-text-secondary mb-6">{message}</p>
+      <p className="mb-5 text-sm text-text-secondary">{message}</p>
       {action?.href !== undefined && (
         <Link href={action.href} className={actionClassName}>
           {action.label}

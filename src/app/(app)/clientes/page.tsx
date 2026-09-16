@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { createClientServer } from '@/lib/supabase';
 import { createRepositories } from '@/repositories/container';
-import { Card, EmptyState } from '@/components/ui';
+import { Alert, Card, EmptyState, PageHeader, buttonClass } from '@/components/ui';
+import { formatMoney } from '@/lib/format';
 
 export default async function ClientesPage() {
   const supabase = await createClientServer();
@@ -14,24 +15,18 @@ export default async function ClientesPage() {
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
-            <p className="mt-2 text-gray-600">
-              Gestiona el registro de clientes y sus deudas
-            </p>
-          </div>
-          <Link
-            href="/clientes/nuevo"
-            className="rounded-md bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary-light transition-colors"
-          >
-            + Nuevo cliente
-          </Link>
-        </div>
+        <PageHeader
+          title="Clientes"
+          description="Gestiona el registro de clientes y sus deudas"
+          actions={
+            <Link href="/clientes/nuevo" className={buttonClass('primary')}>
+              Nuevo cliente
+            </Link>
+          }
+        />
 
         {clientes.length === 0 ? (
           <EmptyState
-            icon="👥"
             title="Sin clientes"
             message="Comienza registrando tu primer cliente"
             action={{
@@ -40,32 +35,30 @@ export default async function ClientesPage() {
             }}
           />
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {clientes.map((cliente) => (
               <Link
                 key={cliente.id}
                 href={`/clientes/${cliente.id}`}
-                className="block"
+                className="block rounded-lg transition-colors hover:[&>div]:border-border-strong"
               >
                 <Card>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-text">
+                      <h3 className="font-medium text-text">
                         {cliente.nombre}
                       </h3>
-                      <div className="mt-2 space-y-1 text-sm text-text-secondary">
-                        <p>📱 {cliente.telefono}</p>
-                        {cliente.direccion && (
-                          <p>📍 {cliente.direccion}</p>
-                        )}
-                      </div>
+                      <p className="mt-0.5 text-sm text-text-secondary">
+                        {cliente.telefono}
+                        {cliente.direccion && ` · ${cliente.direccion}`}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-text-secondary">Saldo pendiente</p>
-                      <p className={`text-2xl font-bold ${
-                        cliente.saldo > 0 ? 'text-danger' : 'text-secondary'
+                      <p className="text-xs text-text-secondary">Saldo pendiente</p>
+                      <p className={`text-lg font-semibold tabular-nums ${
+                        cliente.saldo > 0 ? 'text-danger' : 'text-text'
                       }`}>
-                        ${cliente.saldo.toFixed(2)}
+                        {formatMoney(cliente.saldo)}
                       </p>
                     </div>
                   </div>
@@ -76,13 +69,7 @@ export default async function ClientesPage() {
         )}
       </div>
     );
-  } catch (error) {
-    return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-red-700">
-          Error al cargar los clientes. Por favor, intenta de nuevo más tarde.
-        </p>
-      </div>
-    );
+  } catch {
+    return <Alert tone="danger">Error al cargar los clientes. Por favor, intenta de nuevo más tarde.</Alert>;
   }
 }

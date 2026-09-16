@@ -27,44 +27,38 @@ export default async function DemoLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <DemoBanner expiresAt={session.expiresAt} />
 
-      {/* Navbar */}
-      <nav className="border-b border-gray-200 bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 justify-between">
-            <div className="flex items-center">
-              <Link href="/demo" className="text-xl font-bold text-indigo-600">
-                Pulpería <span className="text-amber-500">· Demo</span>
-              </Link>
-              <div className="ml-10 flex space-x-4">
-                {DEMO_NAV.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">demo@app.com</span>
+      <nav className="border-b border-border bg-surface">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between px-4 sm:h-14 sm:flex-nowrap sm:px-6">
+          <Link href="/demo" className="flex h-12 items-center whitespace-nowrap text-sm font-semibold tracking-tight text-text sm:h-auto">
+            Pulpería <span className="ml-1 font-normal text-text-secondary">· Demo</span>
+          </Link>
+          {/* En móvil los enlaces bajan a una segunda fila desplazable. */}
+          <div className="order-last -mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-3 pb-2 sm:order-none sm:mx-0 sm:ml-8 sm:mr-auto sm:w-auto sm:overflow-visible sm:p-0">
+            {DEMO_NAV.map((item) => (
               <Link
-                href="/demo/salir"
-                className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                key={item.href}
+                href={item.href}
+                className="whitespace-nowrap rounded-md px-3 py-1.5 text-sm text-text-secondary transition-colors hover:bg-muted hover:text-text"
               >
-                Salir
+                {item.label}
               </Link>
-            </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="hidden text-sm text-text-secondary md:inline">demo@app.com</span>
+            {/* <a> y no <Link>: Next prefetchea los <Link> en producción y ese GET
+                ejecutaría /demo/salir, borrando la cookie de sesión demo. */}
+            <a href="/demo/salir" className="text-sm text-text-secondary transition-colors hover:text-text">
+              Salir
+            </a>
           </div>
         </div>
       </nav>
 
-      {/* Contenido */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
     </div>
   );
 }

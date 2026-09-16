@@ -1,8 +1,12 @@
-export { Button } from './Button';
+export { Button, buttonClass } from './Button';
+export type { ButtonVariant, ButtonSize } from './Button';
 export { Input } from './Input';
 export { Card } from './Card';
 export { ErrorMessage } from './ErrorMessage';
 export { EmptyState } from './EmptyState';
 export { LoadingSpinner } from './LoadingSpinner';
 export { MetricCard } from './MetricCard';
-export type { MetricColor } from './MetricCard';
+export type { MetricTone } from './MetricCard';
+export { PageHeader } from './PageHeader';
+export { Alert } from './Alert';
+export type { AlertTone } from './Alert';

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import { Button, Card, EmptyState, ErrorMessage, Input, LoadingSpinner } from '@/components/ui'
+import { Alert, Button, Card, EmptyState, ErrorMessage, Input, LoadingSpinner, MetricCard, PageHeader, buttonClass } from '@/components/ui'
 import * as uiExports from '@/components/ui'
 
 describe('shared ui components', () => {
@@ -58,7 +58,6 @@ describe('shared ui components', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Recargar' }))
 
-    expect(screen.getByText('📭')).toBeInTheDocument()
     expect(screen.getByText('Sin datos')).toBeInTheDocument()
     expect(onClick).toHaveBeenCalledTimes(1)
   })
@@ -112,6 +111,46 @@ describe('shared ui components', () => {
 
     expect(screen.queryByText('Cargando ventas')).not.toBeInTheDocument()
     expect(container.firstChild).toHaveClass('fixed')
+  })
+
+  it('builds button classes for links that match the Button component', () => {
+    render(<Button variant="secondary" size="sm">Editar</Button>)
+
+    const button = screen.getByRole('button', { name: 'Editar' })
+    for (const cls of buttonClass('secondary', 'sm').split(' ')) {
+      expect(button).toHaveClass(cls)
+    }
+  })
+
+  it('renders the page header with back link and actions', () => {
+    render(
+      <PageHeader
+        title="Clientes"
+        description="Listado"
+        backHref="/dashboard"
+        actions={<button>Nuevo</button>}
+      />
+    )
+
+    expect(screen.getByRole('heading', { name: 'Clientes' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '← Volver' })).toHaveAttribute('href', '/dashboard')
+    expect(screen.getByRole('button', { name: 'Nuevo' })).toBeInTheDocument()
+  })
+
+  it('renders alerts with an accessible role per tone', () => {
+    const { rerender } = render(<Alert tone="danger">Error</Alert>)
+    expect(screen.getByRole('alert')).toHaveTextContent('Error')
+
+    rerender(<Alert tone="warning" title="Stock bajo">2 productos</Alert>)
+    expect(screen.getByRole('status')).toHaveTextContent('Stock bajo')
+  })
+
+  it('highlights metric values only when a tone is given', () => {
+    const { rerender } = render(<MetricCard title="Saldo" value="L 10.00" />)
+    expect(screen.getByText('L 10.00')).toHaveClass('text-text')
+
+    rerender(<MetricCard title="Saldo" value="L 10.00" tone="danger" />)
+    expect(screen.getByText('L 10.00')).toHaveClass('text-danger')
   })
 
   it('re-exports all shared ui building blocks', () => {

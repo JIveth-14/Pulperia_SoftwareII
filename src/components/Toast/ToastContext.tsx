@@ -71,22 +71,23 @@ function ToastContainer({
         <div
           key={toast.id}
           className={`
-            rounded-md p-4 text-white shadow-lg flex items-start justify-between gap-4 animate-in slide-in-from-right
+            flex items-start justify-between gap-4 rounded-md border border-border bg-surface px-4 py-3 text-sm text-text
+            border-l-2
             ${
-              toast.type === 'success' ? 'bg-secondary' : ''
+              toast.type === 'success' ? 'border-l-success' : ''
             }
             ${
-              toast.type === 'error' ? 'bg-danger' : ''
+              toast.type === 'error' ? 'border-l-danger' : ''
             }
             ${
-              toast.type === 'info' ? 'bg-primary' : ''
+              toast.type === 'info' ? 'border-l-primary' : ''
             }
           `}
         >
           <p className="flex-1">{toast.message}</p>
           <button
             onClick={() => onDismiss(toast.id)}
-            className="text-white hover:text-gray-200 flex-shrink-0"
+            className="flex-shrink-0 text-text-secondary hover:text-text"
           >
             ✕
           </button>

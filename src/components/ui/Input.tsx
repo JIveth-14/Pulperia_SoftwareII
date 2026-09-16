@@ -21,7 +21,7 @@ export function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-text mb-2"
+          className="mb-1.5 block text-sm font-medium text-text"
         >
           {label}
         </label>
@@ -29,10 +29,10 @@ export function Input({
       <input
         id={inputId}
         className={`
-          w-full px-3 py-2 border border-gray-300 rounded-md
-          text-text placeholder-text-secondary
-          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-          disabled:bg-gray-50 disabled:text-text-secondary disabled:cursor-not-allowed
+          w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm
+          text-text placeholder:text-text-secondary
+          focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary
+          disabled:cursor-not-allowed disabled:bg-muted disabled:text-text-secondary
           ${error ? 'border-danger focus:ring-danger' : ''}
           ${className}
         `}

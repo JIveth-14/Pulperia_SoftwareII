@@ -5,15 +5,15 @@ interface ErrorMessageProps {
 
 export function ErrorMessage({ message, onDismiss }: ErrorMessageProps) {
   return (
-    <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 flex items-start justify-between">
-      <div className="flex items-start gap-3">
-        <span className="text-lg">⚠️</span>
-        <p>{message}</p>
-      </div>
+    <div
+      role="alert"
+      className="flex items-start justify-between gap-4 rounded-md border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger"
+    >
+      <p>{message}</p>
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="text-red-600 hover:text-red-800 font-medium"
+          className="font-medium text-danger/70 hover:text-danger"
         >
           ✕
         </button>

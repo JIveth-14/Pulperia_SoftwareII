@@ -9,19 +9,19 @@ export function LoadingSpinner({
 }: LoadingSpinnerProps) {
   const content = (
     <div className="flex flex-col items-center justify-center gap-4">
-      <div className="relative h-12 w-12">
-        <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-        <div className="absolute inset-0 rounded-full border-4 border-primary border-r-transparent animate-spin"></div>
+      <div className="relative h-8 w-8">
+        <div className="absolute inset-0 rounded-full border-2 border-border"></div>
+        <div className="absolute inset-0 animate-spin rounded-full border-2 border-primary border-r-transparent"></div>
       </div>
       {message && (
-        <p className="text-text-secondary font-medium">{message}</p>
+        <p className="text-sm text-text-secondary">{message}</p>
       )}
     </div>
   );
 
   if (fullPage) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-90 z-50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90">
         {content}
       </div>
     );

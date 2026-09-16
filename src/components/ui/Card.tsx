@@ -16,26 +16,26 @@ export function Card({
   return (
     <div
       className={`
-        bg-white rounded-md border border-gray-200 shadow-sm
+        rounded-lg border border-border bg-surface
         ${className}
       `}
       {...props}
     >
       {(title || subtitle) && (
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="border-b border-border px-5 py-3">
           {title && (
-            <h3 className="text-lg font-semibold text-text">
+            <h3 className="text-sm font-medium text-text">
               {title}
             </h3>
           )}
           {subtitle && (
-            <p className="mt-1 text-sm text-text-secondary">
+            <p className="mt-0.5 text-sm text-text-secondary">
               {subtitle}
             </p>
           )}
         </div>
       )}
-      <div className="px-6 py-4">{children}</div>
+      <div className="px-5 py-4">{children}</div>
     </div>
   );
 }

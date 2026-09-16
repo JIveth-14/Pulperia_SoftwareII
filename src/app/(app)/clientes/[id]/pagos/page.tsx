@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PageHeader, buttonClass } from '@/components/ui';
 import { parseIdOrNotFound } from '@/lib/params';
 
 export default async function HistorialPagosPage({
@@ -10,28 +11,18 @@ export default async function HistorialPagosPage({
   const id = parseIdOrNotFound(rawId);
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link
-            href={`/clientes/${id}`}
-            className="text-sm text-indigo-600 hover:text-indigo-700"
-          >
-            ← Volver
+      <PageHeader
+        title={`Historial de pagos - Cliente #${id}`}
+        backHref={`/clientes/${id}`}
+        actions={
+          <Link href={`/clientes/${id}/pagos/nuevo`} className={buttonClass('primary')}>
+            Nuevo pago
           </Link>
-          <h1 className="mt-4 text-3xl font-bold text-gray-900">
-            Historial de pagos - Cliente #{id}
-          </h1>
-        </div>
-        <Link
-          href={`/clientes/${id}/pagos/nuevo`}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          + Nuevo pago
-        </Link>
-      </div>
+        }
+      />
 
-      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
-        <p className="text-gray-600">
+      <div className="rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
+        <p className="text-sm text-text-secondary">
           Lista de pagos (se implementará en próximas fases)
         </p>
       </div>

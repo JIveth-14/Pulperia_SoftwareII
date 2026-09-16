@@ -35,16 +35,13 @@ export function DemoBanner({ expiresAt }: { expiresAt: number }) {
   }
 
   return (
-    <div className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-400 px-4 py-2 text-center text-sm font-medium text-amber-950 shadow">
-      <span>🔴 MODO DEMO — datos ficticios, no se guardan cambios (solo lectura)</span>
-      <span className="rounded bg-amber-950/10 px-2 py-0.5 font-mono tabular-nums">
-        ⏱ {label}
+    <div className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-warning/25 bg-warning-soft px-4 py-1.5 text-center text-xs text-warning">
+      <span>Modo demo · datos ficticios de solo lectura</span>
+      <span className="font-mono tabular-nums" aria-label="Tiempo restante de la sesión demo">
+        {label}
       </span>
-      <a
-        href="/demo/salir"
-        className="rounded bg-amber-950 px-2 py-0.5 text-xs font-semibold text-amber-50 hover:bg-amber-900"
-      >
-        Salir de la demo
+      <a href="/demo/salir" className="font-medium underline underline-offset-2 hover:no-underline">
+        Salir
       </a>
     </div>
   );

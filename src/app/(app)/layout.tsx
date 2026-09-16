@@ -16,32 +16,27 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="border-b border-gray-200 bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/dashboard" className="text-xl font-bold text-indigo-600">
-                Pulpería
-              </Link>
-              <div className="ml-10 flex space-x-4">
-                <NavLink href="/dashboard" label="Dashboard" />
-                <NavLink href="/clientes" label="Clientes" />
-                <NavLink href="/productos" label="Productos" />
-                <NavLink href="/ventas" label="Ventas" />
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">{user.email}</span>
-              <SignOutButton />
-            </div>
+    <div className="min-h-screen bg-background">
+      <nav className="border-b border-border bg-surface">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between px-4 sm:h-14 sm:flex-nowrap sm:px-6">
+          <Link href="/dashboard" className="flex h-12 items-center whitespace-nowrap text-sm font-semibold tracking-tight text-text sm:h-auto">
+            Pulpería
+          </Link>
+          {/* En móvil los enlaces bajan a una segunda fila desplazable. */}
+          <div className="order-last -mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-3 pb-2 sm:order-none sm:mx-0 sm:ml-8 sm:mr-auto sm:w-auto sm:overflow-visible sm:p-0">
+            <NavLink href="/dashboard" label="Dashboard" />
+            <NavLink href="/clientes" label="Clientes" />
+            <NavLink href="/productos" label="Productos" />
+            <NavLink href="/ventas" label="Ventas" />
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="hidden text-sm text-text-secondary md:inline">{user.email}</span>
+            <SignOutButton />
           </div>
         </div>
       </nav>
 
-      {/* Contenido */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {children}
       </main>
     </div>
@@ -52,7 +47,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+      className="whitespace-nowrap rounded-md px-3 py-1.5 text-sm text-text-secondary transition-colors hover:bg-muted hover:text-text"
     >
       {label}
     </Link>
@@ -72,7 +67,7 @@ function SignOutButton() {
     >
       <button
         type="submit"
-        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        className="text-sm text-text-secondary transition-colors hover:text-text"
       >
         Cerrar sesión
       </button>
