@@ -16,10 +16,13 @@ export function MetricCard({
   title,
   value,
   tone = 'default',
+  detalle,
 }: {
   title: string;
   value: string;
   tone?: MetricTone;
+  /** Dato secundario debajo del valor. */
+  detalle?: string;
 }) {
   return (
     <div className="rounded-lg border border-border bg-surface px-5 py-4">
@@ -27,6 +30,7 @@ export function MetricCard({
       <p className={`mt-1 text-2xl font-semibold tabular-nums tracking-tight ${TONE_CLASSES[tone]}`}>
         {value}
       </p>
+      {detalle && <p className="mt-0.5 text-xs text-text-secondary">{detalle}</p>}
     </div>
   );
 }

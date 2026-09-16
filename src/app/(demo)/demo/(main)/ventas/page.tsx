@@ -6,5 +6,6 @@ import { VentasView } from '@/components/vistas';
 /** Registro de ventas en modo demo (solo lectura). */
 export default async function DemoVentasPage() {
   const repos = await getRepositories('demo');
-  return <VentasView ventas={await repos.ventas.getAll()} modo="demo" />;
+  const [ventas, clientes] = await Promise.all([repos.ventas.getAll(), repos.clientes.getAll()]);
+  return <VentasView ventas={ventas} clientes={clientes} modo="demo" />;
 }

@@ -1,9 +1,9 @@
 import type { Producto } from '@/types';
-import { Card, EmptyState, PageHeader } from '@/components/ui';
+import { Badge, EmptyState, PageHeader, Table, TBody, Td, Th, THead, Tr } from '@/components/ui';
 import { StockBajo } from '@/components/productos/StockBajo';
 import { formatMoney } from '@/lib/format';
-import { Accion, AvisoSoloLectura } from './Acciones';
 import { coincide } from '@/lib/texto';
+import { Accion, AvisoSoloLectura } from './Acciones';
 import { Buscador } from './Buscador';
 import { esDemo, rutaBase, type ModoDatos } from './modo';
 
@@ -15,14 +15,18 @@ interface ProductosViewProps {
 
 export function ProductosView({ productos, modo = 'real', busqueda = '' }: ProductosViewProps) {
   const soloLectura = esDemo(modo);
-  const filtrados = busqueda ? productos.filter((p) => coincide(p.nombre, busqueda)) : productos;
   const conStockBajo = productos.filter((p) => p.stock < p.stock_minimo);
+  const filtrados = busqueda ? productos.filter((p) => coincide(p.nombre, busqueda)) : productos;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Productos"
-        description="Gestiona tu inventario y stock"
+        description={
+          productos.length > 0
+            ? `${productos.length} productos · ${conStockBajo.length} con stock bajo`
+            : 'Gestiona tu inventario y stock'
+        }
         actions={
           <Accion href="/productos/nuevo" soloLectura={soloLectura}>
             Nuevo producto
@@ -52,33 +56,64 @@ export function ProductosView({ productos, modo = 'real', busqueda = '' }: Produ
       ) : filtrados.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-secondary">Ningún producto coincide con “{busqueda}”</p>
       ) : (
-        <div className="grid gap-3">
-          {filtrados.map((producto) => (
-            <Card key={producto.id}>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="font-medium text-text">{producto.nombre}</h3>
-                  <div className="mt-0.5 flex gap-4 text-sm text-text-secondary">
-                    <span className="tabular-nums">{formatMoney(producto.precio)}</span>
-                    <span
-                      className={`tabular-nums ${producto.stock < producto.stock_minimo ? 'text-danger' : ''}`}
-                    >
-                      Stock {producto.stock} / {producto.stock_minimo}
+        <Table>
+          <THead>
+            <Th>Producto</Th>
+            <Th align="right">Precio</Th>
+            <Th align="right">Stock</Th>
+            <Th align="right" ocultarEnMovil>
+              Mínimo
+            </Th>
+            <Th align="right">
+              <span className="sr-only">Acciones</span>
+            </Th>
+          </THead>
+          <TBody>
+            {filtrados.map((producto) => {
+              const agotado = producto.stock === 0;
+              const bajo = producto.stock < producto.stock_minimo;
+              return (
+                <Tr key={producto.id}>
+                  <Td>
+                    <span className="font-medium text-text">{producto.nombre}</span>
+                  </Td>
+                  <Td align="right" className="tabular-nums text-text">
+                    {formatMoney(producto.precio)}
+                  </Td>
+                  <Td align="right">
+                    <span className="inline-flex items-center justify-end gap-2">
+                      {agotado ? (
+                        <Badge tone="danger">Agotado</Badge>
+                      ) : (
+                        bajo && (
+                          <span className="hidden sm:inline-flex">
+                            <Badge tone="warning">Bajo</Badge>
+                          </span>
+                        )
+                      )}
+                      <span className={`tabular-nums ${bajo ? 'font-medium text-danger' : 'text-text'}`}>
+                        {producto.stock}
+                      </span>
                     </span>
-                  </div>
-                </div>
-                <Accion
-                  href={`/productos/${producto.id}/editar`}
-                  variant="secondary"
-                  size="sm"
-                  soloLectura={soloLectura}
-                >
-                  Editar
-                </Accion>
-              </div>
-            </Card>
-          ))}
-        </div>
+                  </Td>
+                  <Td align="right" ocultarEnMovil className="tabular-nums text-text-secondary">
+                    {producto.stock_minimo}
+                  </Td>
+                  <Td align="right">
+                    <Accion
+                      href={`/productos/${producto.id}/editar`}
+                      variant="secondary"
+                      size="sm"
+                      soloLectura={soloLectura}
+                    >
+                      Editar
+                    </Accion>
+                  </Td>
+                </Tr>
+              );
+            })}
+          </TBody>
+        </Table>
       )}
     </div>
   );

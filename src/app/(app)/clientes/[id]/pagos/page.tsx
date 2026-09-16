@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { EmptyState, PageHeader, buttonClass } from '@/components/ui';
+import { EmptyState, PageHeader, Table, TBody, Td, Th, THead, Tr, buttonClass } from '@/components/ui';
 import { getRepositories } from '@/repositories/container';
 import { oNotFound, parseIdOrNotFound } from '@/lib/params';
 import { formatDateTime, formatMoney } from '@/lib/format';
@@ -34,28 +34,24 @@ export default async function HistorialPagosPage({
       {pagos.length === 0 ? (
         <EmptyState title="Sin pagos" message="Este cliente todavía no ha hecho abonos." />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border bg-surface">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs text-text-secondary">
-                <th scope="col" className="px-5 py-2.5 font-medium">Fecha</th>
-                <th scope="col" className="px-5 py-2.5 font-medium">Deuda</th>
-                <th scope="col" className="px-5 py-2.5 text-right font-medium">Monto</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {pagos.map((pago) => (
-                <tr key={pago.id}>
-                  <td className="whitespace-nowrap px-5 py-3 text-text">{formatDateTime(pago.fecha_pago)}</td>
-                  <td className="px-5 py-3 text-text-secondary">#{pago.fiado_id}</td>
-                  <td className="px-5 py-3 text-right font-medium tabular-nums text-success">
-                    {formatMoney(pago.monto_pagado)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <THead>
+            <Th>Fecha</Th>
+            <Th>Deuda</Th>
+            <Th align="right">Monto</Th>
+          </THead>
+          <TBody>
+            {pagos.map((pago) => (
+              <Tr key={pago.id}>
+                <Td className="whitespace-nowrap text-text">{formatDateTime(pago.fecha_pago)}</Td>
+                <Td className="text-text-secondary">#{pago.fiado_id}</Td>
+                <Td align="right" className="font-medium tabular-nums text-success">
+                  {formatMoney(pago.monto_pagado)}
+                </Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
       )}
     </div>
   );

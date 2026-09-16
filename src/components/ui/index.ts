@@ -11,3 +11,6 @@ export { PageHeader } from './PageHeader';
 export { Alert } from './Alert';
 export { Select } from './Select';
 export type { AlertTone } from './Alert';
+export { Badge } from './Badge';
+export type { BadgeTone } from './Badge';
+export { Table, THead, TBody, Th, Td, Tr, EnlaceFila } from './Table';

@@ -1,8 +1,8 @@
 import type { ClienteConSaldo } from '@/types';
-import { Card, EmptyState, PageHeader } from '@/components/ui';
+import { Badge, EmptyState, EnlaceFila, PageHeader, Table, TBody, Td, Th, THead, Tr } from '@/components/ui';
 import { formatMoney } from '@/lib/format';
-import { Accion, AvisoSoloLectura, EnlaceTarjeta } from './Acciones';
 import { coincide } from '@/lib/texto';
+import { Accion, AvisoSoloLectura } from './Acciones';
 import { Buscador } from './Buscador';
 import { esDemo, rutaBase, type ModoDatos } from './modo';
 
@@ -17,12 +17,18 @@ export function ClientesView({ clientes, modo = 'real', busqueda = '' }: Cliente
   const filtrados = busqueda
     ? clientes.filter((c) => coincide(c.nombre, busqueda) || c.telefono.includes(busqueda.trim()))
     : clientes;
+  const porCobrar = clientes.reduce((sum, c) => sum + c.saldo, 0);
+  const conDeuda = clientes.filter((c) => c.saldo > 0).length;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Clientes"
-        description="Gestiona el registro de clientes y sus deudas"
+        description={
+          clientes.length > 0
+            ? `${clientes.length} clientes · ${conDeuda} con deuda · ${formatMoney(porCobrar)} por cobrar`
+            : 'Gestiona el registro de clientes y sus deudas'
+        }
         actions={
           <Accion href="/clientes/nuevo" soloLectura={soloLectura}>
             Nuevo cliente
@@ -50,33 +56,37 @@ export function ClientesView({ clientes, modo = 'real', busqueda = '' }: Cliente
       ) : filtrados.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-secondary">Ningún cliente coincide con “{busqueda}”</p>
       ) : (
-        <div className="grid gap-3">
-          {filtrados.map((cliente) => (
-            <EnlaceTarjeta key={cliente.id} href={soloLectura ? undefined : `/clientes/${cliente.id}`}>
-              <Card>
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-medium text-text">{cliente.nombre}</h3>
-                    <p className="mt-0.5 text-sm text-text-secondary">
-                      {cliente.telefono}
-                      {cliente.direccion && ` · ${cliente.direccion}`}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-text-secondary">Saldo pendiente</p>
-                    <p
-                      className={`text-lg font-semibold tabular-nums ${
-                        cliente.saldo > 0 ? 'text-danger' : 'text-text'
-                      }`}
-                    >
-                      {formatMoney(cliente.saldo)}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </EnlaceTarjeta>
-          ))}
-        </div>
+        <Table>
+          <THead>
+            <Th>Cliente</Th>
+            <Th ocultarEnMovil>Dirección</Th>
+            <Th align="right">Saldo</Th>
+          </THead>
+          <TBody>
+            {filtrados.map((cliente) => (
+              <Tr key={cliente.id}>
+                <Td>
+                  {soloLectura ? (
+                    <span className="font-medium text-text">{cliente.nombre}</span>
+                  ) : (
+                    <EnlaceFila href={`/clientes/${cliente.id}`}>{cliente.nombre}</EnlaceFila>
+                  )}
+                  <span className="block text-xs text-text-secondary">{cliente.telefono}</span>
+                </Td>
+                <Td ocultarEnMovil className="text-text-secondary">
+                  {cliente.direccion ?? '—'}
+                </Td>
+                <Td align="right">
+                  {cliente.saldo > 0 ? (
+                    <span className="font-medium tabular-nums text-danger">{formatMoney(cliente.saldo)}</span>
+                  ) : (
+                    <Badge tone="success">Al día</Badge>
+                  )}
+                </Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
       )}
     </div>
   );

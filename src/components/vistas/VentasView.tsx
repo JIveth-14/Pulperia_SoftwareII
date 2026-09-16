@@ -1,17 +1,31 @@
-import type { Venta } from '@/types';
-import { Card, EmptyState, PageHeader } from '@/components/ui';
-import { formatDate, formatMoney } from '@/lib/format';
-import { Accion, AvisoSoloLectura, EnlaceTarjeta } from './Acciones';
+import type { Cliente, Venta } from '@/types';
+import { EmptyState, EnlaceFila, PageHeader, Table, TBody, Td, Th, THead, Tr } from '@/components/ui';
+import { formatDateTime, formatMoney } from '@/lib/format';
+import { Accion, AvisoSoloLectura } from './Acciones';
+import { BadgeTipoPago } from './etiquetas';
 import { esDemo, type ModoDatos } from './modo';
 
-export function VentasView({ ventas, modo = 'real' }: { ventas: Venta[]; modo?: ModoDatos }) {
+interface VentasViewProps {
+  ventas: Venta[];
+  /** Para mostrar el nombre del cliente de cada venta. */
+  clientes?: Pick<Cliente, 'id' | 'nombre'>[];
+  modo?: ModoDatos;
+}
+
+export function VentasView({ ventas, clientes = [], modo = 'real' }: VentasViewProps) {
   const soloLectura = esDemo(modo);
+  const nombres = new Map(clientes.map((c) => [c.id, c.nombre]));
+  const total = ventas.reduce((sum, v) => sum + Number(v.total), 0);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Ventas"
-        description="Registro de todas tus ventas"
+        description={
+          ventas.length > 0
+            ? `${ventas.length} ventas · ${formatMoney(total)} en total`
+            : 'Registro de todas tus ventas'
+        }
         actions={
           <Accion href="/ventas/nueva" soloLectura={soloLectura}>
             Nueva venta
@@ -28,23 +42,37 @@ export function VentasView({ ventas, modo = 'real' }: { ventas: Venta[]; modo?: 
           action={soloLectura ? undefined : { label: 'Registrar venta', href: '/ventas/nueva' }}
         />
       ) : (
-        <div className="grid gap-3">
-          {ventas.map((venta) => (
-            <EnlaceTarjeta key={venta.id} href={soloLectura ? undefined : `/ventas/${venta.id}`}>
-              <Card>
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-medium text-text">Venta #{venta.id}</h3>
-                    <p className="mt-0.5 text-sm text-text-secondary">
-                      {formatDate(venta.fecha)} · {venta.tipo_pago === 'contado' ? 'Contado' : 'Fiado'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-semibold tabular-nums text-text">{formatMoney(venta.total)}</p>
-                </div>
-              </Card>
-            </EnlaceTarjeta>
-          ))}
-        </div>
+        <Table>
+          <THead>
+            <Th>Venta</Th>
+            <Th ocultarEnMovil>Cliente</Th>
+            <Th>Pago</Th>
+            <Th align="right">Total</Th>
+          </THead>
+          <TBody>
+            {ventas.map((venta) => (
+              <Tr key={venta.id}>
+                <Td>
+                  {soloLectura ? (
+                    <span className="font-medium text-text">Venta #{venta.id}</span>
+                  ) : (
+                    <EnlaceFila href={`/ventas/${venta.id}`}>Venta #{venta.id}</EnlaceFila>
+                  )}
+                  <span className="block text-xs text-text-secondary">{formatDateTime(venta.fecha)}</span>
+                </Td>
+                <Td ocultarEnMovil className="text-text-secondary">
+                  {venta.cliente_id ? (nombres.get(venta.cliente_id) ?? `Cliente #${venta.cliente_id}`) : '—'}
+                </Td>
+                <Td>
+                  <BadgeTipoPago tipo={venta.tipo_pago} />
+                </Td>
+                <Td align="right" className="font-medium tabular-nums text-text">
+                  {formatMoney(venta.total)}
+                </Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
       )}
     </div>
   );

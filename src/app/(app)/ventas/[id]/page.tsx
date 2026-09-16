@@ -3,6 +3,7 @@ import { Card, PageHeader } from '@/components/ui';
 import { getRepositories } from '@/repositories/container';
 import { oNotFound, parseIdOrNotFound } from '@/lib/params';
 import { formatDateTime, formatMoney } from '@/lib/format';
+import { BadgeTipoPago } from '@/components/vistas';
 
 export default async function VentaDetailPage({
   params,
@@ -26,7 +27,9 @@ export default async function VentaDetailPage({
         </Card>
         <Card>
           <p className="text-sm text-text-secondary">Forma de pago</p>
-          <p className="mt-1 text-lg font-medium text-text">{venta.tipo_pago === 'fiado' ? 'Al crédito' : 'Contado'}</p>
+          <p className="mt-2">
+            <BadgeTipoPago tipo={venta.tipo_pago} />
+          </p>
         </Card>
         <Card>
           <p className="text-sm text-text-secondary">Cliente</p>

@@ -1,8 +1,10 @@
 import type { ClienteConSaldo, Producto, Venta } from '@/types';
 import type { Repositories } from '@/repositories/container';
-import { MetricCard, PageHeader } from '@/components/ui';
+import Link from 'next/link';
+import { EnlaceFila, MetricCard, PageHeader, Table, TBody, Td, Th, THead, Tr } from '@/components/ui';
 import { StockBajo } from '@/components/productos/StockBajo';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatTime } from '@/lib/format';
+import { BadgeTipoPago } from './etiquetas';
 import { esDemo, rutaBase, type ModoDatos } from './modo';
 
 export interface DatosDashboard {
@@ -25,6 +27,11 @@ export function DashboardView({ datos, modo = 'real' }: { datos: DatosDashboard;
   const saldoPendiente = clientesConSaldo.reduce((sum, c) => sum + c.saldo, 0);
   const ventasTotalDelDia = ventasDelDia.reduce((sum, v) => sum + Number(v.total), 0);
   const productosStockBajo = productos.filter((p) => p.stock < p.stock_minimo);
+  // Las más recientes primero.
+  const ultimas = [...ventasDelDia]
+    .sort((a, b) => Date.parse(b.fecha ?? '') - Date.parse(a.fecha ?? '') || b.id - a.id)
+    .slice(0, 8);
+  const conDeuda = clientesConSaldo.filter((c) => c.saldo > 0).length;
 
   return (
     <div className="space-y-8">
@@ -34,35 +41,71 @@ export function DashboardView({ datos, modo = 'real' }: { datos: DatosDashboard;
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard title="Clientes" value={clientesConSaldo.length.toString()} />
-        <MetricCard title="Ventas del día" value={formatMoney(ventasTotalDelDia)} />
+        <MetricCard title="Clientes" value={clientesConSaldo.length.toString()} detalle={`${conDeuda} con deuda`} />
+        <MetricCard
+          title="Ventas del día"
+          value={formatMoney(ventasTotalDelDia)}
+          detalle={`${ventasDelDia.length} venta${ventasDelDia.length === 1 ? '' : 's'}`}
+        />
         <MetricCard
           title="Saldo pendiente"
           value={formatMoney(saldoPendiente)}
+          detalle="por cobrar"
           tone={saldoPendiente > 0 ? 'danger' : 'default'}
         />
-        <MetricCard title="Productos" value={productos.length.toString()} />
+        <MetricCard
+          title="Productos"
+          value={productos.length.toString()}
+          detalle={`${productosStockBajo.length} con stock bajo`}
+        />
       </div>
 
       <StockBajo productos={productosStockBajo} limite={6} href={`${rutaBase(modo)}/productos`} />
 
-      <section className="rounded-lg border border-border bg-surface">
-        <h2 className="border-b border-border px-5 py-3 text-sm font-medium text-text">
-          Ventas de hoy
-        </h2>
-        {ventasDelDia.length === 0 ? (
+      {ventasDelDia.length === 0 ? (
+        <section className="rounded-lg border border-border bg-surface">
+          <h2 className="border-b border-border px-5 py-3 text-sm font-medium text-text">Ventas de hoy</h2>
           <p className="px-5 py-4 text-sm text-text-secondary">Sin ventas el día de hoy</p>
-        ) : (
-          <ul className="divide-y divide-border">
-            {ventasDelDia.slice(0, 5).map((v) => (
-              <li key={v.id} className="flex justify-between px-5 py-3 text-sm">
-                <span className="text-text-secondary">Venta #{v.id}</span>
-                <span className="font-medium tabular-nums text-text">{formatMoney(v.total)}</span>
-              </li>
+        </section>
+      ) : (
+        <Table
+          titulo={
+            <div className="flex items-center justify-between gap-4">
+              <h2>Ventas de hoy</h2>
+              <Link href={`${rutaBase(modo)}/ventas`} className="font-normal text-text-secondary hover:text-text">
+                Ver todas →
+              </Link>
+            </div>
+          }
+        >
+          <THead>
+            <Th>Hora</Th>
+            <Th>Venta</Th>
+            <Th>Pago</Th>
+            <Th align="right">Total</Th>
+          </THead>
+          <TBody>
+            {ultimas.map((v) => (
+              <Tr key={v.id}>
+                <Td className="whitespace-nowrap tabular-nums text-text-secondary">{formatTime(v.fecha)}</Td>
+                <Td>
+                  {esDemo(modo) ? (
+                    <span className="text-text">Venta #{v.id}</span>
+                  ) : (
+                    <EnlaceFila href={`/ventas/${v.id}`}>Venta #{v.id}</EnlaceFila>
+                  )}
+                </Td>
+                <Td>
+                  <BadgeTipoPago tipo={v.tipo_pago} />
+                </Td>
+                <Td align="right" className="font-medium tabular-nums text-text">
+                  {formatMoney(v.total)}
+                </Td>
+              </Tr>
             ))}
-          </ul>
-        )}
-      </section>
+          </TBody>
+        </Table>
+      )}
     </div>
   );
 }

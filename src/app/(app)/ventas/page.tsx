@@ -5,5 +5,6 @@ import { VentasView } from '@/components/vistas';
 
 export default async function VentasPage() {
   const repos = await getRepositories();
-  return <VentasView ventas={await repos.ventas.getAll()} />;
+  const [ventas, clientes] = await Promise.all([repos.ventas.getAll(), repos.clientes.getAll()]);
+  return <VentasView ventas={ventas} clientes={clientes} />;
 }
