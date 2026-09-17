@@ -68,6 +68,7 @@ touch .env.local
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_AUTH_JWT_SECRET=define-a-local-secret-with-at-least-32-characters
 
 # Redis (optional: defaults to in-memory if not set)
 REDIS_URL=redis://localhost:6379
@@ -96,6 +97,9 @@ supabase migration up
 supabase start
 supabase migration up
 ```
+
+> Seguridad: `SUPABASE_AUTH_JWT_SECRET` es necesario para `supabase/config.toml` en desarrollo local y debe vivir en tu `.env`/`.env.local`, nunca en archivos versionados.
+> Si algún secreto real llega a exponerse en el repositorio o en el historial, elimínalo del árbol actual y rótalo/revócalo de inmediato; borrar el archivo no invalida un secreto que ya fue publicado.
 
 ### 4. Ejecutar en desarrollo
 

@@ -38,9 +38,9 @@ server.log
 Thumbs.db
 
 # local env files
+# .env.* cubre tambien .env.example: la plataforma exige que no se versione.
 .env
-.env*.local
-.env.example
+.env.*
 
 # vercel
 .vercel
