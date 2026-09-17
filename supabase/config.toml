@@ -20,7 +20,7 @@ port = 54323
 # Auth configuration
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/auth/callback"]
-jwt_secret = "super-secret-jwt-token-with-at-least-32-characters-long"
+jwt_secret = "env(SUPABASE_AUTH_JWT_SECRET)"
 enable_signup = true
 enable_anonymous_signups = false
 mfa_max_enrolled_factors = 5
