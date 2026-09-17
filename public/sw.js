@@ -9,10 +9,13 @@
  * - Al activarse borra todas las cachés anteriores (incluidas las de la
  *   versión vieja que sí guardaba páginas privadas).
  *
- * Para invalidar la caché en todos los dispositivos, sube VERSION.
+ * Para invalidar la caché en todos los dispositivos, sube el sufijo de
+ * versión de CACHE_ESTATICA (-v2 -> -v3): el listener de 'activate' borra
+ * toda caché cuyo nombre no coincida con el actual.
  */
-const VERSION = 'v2';
-const CACHE_ESTATICA = `pulperia-estatico-${VERSION}`;
+// Nombre completo y literal (sin interpolar) para que sea auditable con una
+// búsqueda de texto en este archivo.
+const CACHE_ESTATICA = 'pulperia-estatico-v2';
 const PAGINA_OFFLINE = '/offline.html';
 const PRECARGA = [PAGINA_OFFLINE, '/favicon.svg', '/icons/icon-192.png', '/icons/icon-512.png'];
 
