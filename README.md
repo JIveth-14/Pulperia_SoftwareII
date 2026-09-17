@@ -55,8 +55,11 @@ Guía completa: [`public/DEMO_README.md`](public/DEMO_README.md).
 git clone <repo-url>
 cd pulperia-web
 npm install
-cp .env.example .env.local
+touch .env.local
 ```
+
+> `.env.local` no se versiona (ver `.gitignore`). Copiá el bloque de la
+> seccion 2 y reemplaza los valores con los de tu proyecto de Supabase.
 
 ### 2. Variables de entorno (`.env.local`)
 
