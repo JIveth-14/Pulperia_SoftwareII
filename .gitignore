@@ -9,7 +9,12 @@
 /build
 
 # coverage
-/coverage
+/coverage/*
+# Excepcion deliberada: la plataforma de evaluacion exige el reporte de
+# cobertura legible por maquina dentro del repo. Se versiona SOLO el resumen
+# (90 lineas); el lcov.info y el HTML de lcov-report/ (2.9 MB) siguen fuera y
+# los regenera el CI en cada corrida.
+!/coverage/coverage-summary.json
 
 # playwright
 /test-results/
